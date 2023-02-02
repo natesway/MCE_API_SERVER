@@ -1,0 +1,200 @@
+﻿using MCE_API_SERVER.Models.Player;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
+
+namespace MCE_API_SERVER
+{
+    public static class Util
+    {
+        public static string SavePath = "/storage/emulated/0/Android/data/com.CuRsEd_GaMeS.mce_api_server/files/";//Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/";
+
+        static Util()
+        {
+            if (!Directory.Exists(SavePath))
+                Directory.CreateDirectory(SavePath);
+        }
+
+        private static Assembly currentAssembly = Assembly.GetExecutingAssembly();
+
+        public static byte[] Ok()
+        {
+            string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\n\r\n";
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            return respHeader;
+        }
+
+        public static byte[] Unauthorized()
+        {
+            string respHeaderString = $"HTTP/1.1 401 Unauthorized\r\nServer: csharp_server\r\n\r\n";
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            return respHeader;
+        }
+
+        public static byte[] Content(ServerHandleArgs args, string respData, string respType, params string[] headers)
+            => CreateResp(args, Encoding.UTF8.GetBytes(respData), respType, headers);
+        public static byte[] CreateResp(ServerHandleArgs args, byte[] respData, string respType, params string[] headers)
+        {
+            string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\nContent-Type: {respType}\r\ncharset: UTF-8";
+
+            if (headers != null && headers.Length > 0) {
+                for (int i = 0; i < headers.Length; i++)
+                    respHeaderString += "\r\n" + headers[i];
+            }
+
+            respHeaderString += "\r\n\r\n";
+
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+
+            if (args.Method == "HEAD")
+                return respHeader;
+
+            byte[] resp = new byte[respHeader.Length + respData.Length];
+
+            Array.Copy(respHeader, resp, respHeader.Length);
+            Array.Copy(respData, 0, resp, respHeader.Length, respData.Length);
+
+            return resp;
+        }
+
+        public static byte[] BadRequest()
+        {
+            string respHeaderString = $"HTTP/1.1 400 Bad Request\r\nServer: csharp_server\r\n\r\n";
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            return respHeader;
+        }
+
+        public static byte[] File(ServerHandleArgs args, byte[] respData, string respType, System.Net.Mime.ContentDisposition cd)
+        {
+            string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\nContent-Type: {respType}\r\nContent-Length: {cd.Size}\r\nContent-Disposition: {cd.ToString()}\r\nContent-Transfer-Encoding: binary\r\n\r\n";
+
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+
+            if (args.Method == "HEAD")
+                return respHeader;
+
+            byte[] resp = new byte[respHeader.Length + respData.Length];
+
+            Array.Copy(respHeader, resp, respHeader.Length);
+            Array.Copy(respData, 0, resp, respHeader.Length, respData.Length);
+
+            return resp;
+        }
+
+        public static bool LoadEmbededFile(string name, out byte[] data)
+        {
+            data = new byte[0];
+            //string[] names = currentAssembly.GetManifestResourceNames();
+            Stream stream = currentAssembly.GetManifestResourceStream($"MCE_API_SERVER.Data.{name.Replace('/', '.')}");
+            if (stream == null) {
+                Log.Error($"Couldn't load embeded file \"{name}\"");
+                return false;
+            }
+            data = new byte[stream.Length];
+            stream.Read(data, 0, data.Length);
+            stream.Close();
+            return true;
+        }
+
+        public static string LoadSavedFileString(string name)
+        {
+            byte[] bytes = LoadSavedFile(name);
+            if (bytes == null)
+                return string.Empty;
+            else
+                return Encoding.UTF8.GetString(bytes);
+        }
+        public static byte[] LoadSavedFile(string name)
+        {
+            if (!System.IO.File.Exists(SavePath + name))
+                return null;
+            else
+                return System.IO.File.ReadAllBytes(SavePath + name);
+        }
+
+        public static void SaveFile(string name, string data)
+            => SaveFile(name, Encoding.UTF8.GetBytes(data));
+        public static void SaveFile(string name, byte[] data)
+            => System.IO.File.WriteAllBytes(SavePath + name, data);
+
+        public static bool FileExists(string name)
+            => System.IO.File.Exists(SavePath + name);
+
+
+        private static uint _streamVersion = 0;
+
+        public static T ParseJsonFile<T>(string playerId, string fileNameWithoutJsonExtension) where T : new()
+        {
+            string filepath = $"players/{playerId}/{fileNameWithoutJsonExtension}.json";
+
+            byte[] data = new byte[0];
+            if (!FileExists(filepath)) {
+                if (!Directory.Exists(SavePath + $"players/{playerId}"))
+                    Directory.CreateDirectory(SavePath + $"players/{playerId}");
+
+                SetupJsonFile<T>(playerId, filepath); // Generic setup for each player specific json type
+            }
+
+            byte[] invjson = LoadSavedFile(filepath);
+            T parsedobj;
+            try {
+                parsedobj = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(invjson));
+            } catch {
+                parsedobj = Utf8Json.JsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(invjson));
+            }
+            return parsedobj;
+        }
+
+        private static bool SetupJsonFile<T>(string playerId, string filepath) where T : new()
+        {
+            try {
+                Log.Information($"[{playerId}]: Creating default json with Type: {typeof(T)}.");
+                T obj = new T(); // TODO: Implement Default Values for each player property/json we store for them
+
+                SaveFile(filepath, JsonConvert.SerializeObject(obj));
+                return true;
+            }
+            catch (Exception ex) {
+                Type exType = ex.GetType();
+                if (exType == typeof(InvalidCastException)) { // try again with diffrent json
+                    try {
+                        T obj = new T(); // TODO: Implement Default Values for each player property/json we store for them
+
+                        SaveFile(filepath, Utf8Json.JsonSerializer.Serialize(obj));
+                        return true;
+                    } catch (Exception e) {
+                        Log.Error($"[{playerId}]: Creating default json failed! Type: {typeof(T)}");
+                        Log.Exception(e);
+                        return false;
+                    }
+                }
+                Log.Error($"[{playerId}]: Creating default json failed! Type: {typeof(T)}");
+                Log.Exception(ex);
+                return false;
+            }
+        }
+
+        public static bool WriteJsonFile<T>(string playerId, T objToWrite, string fileNameWithoutJsonExtension)
+        {
+            try {
+                string filepath =  $"players/{playerId}/{fileNameWithoutJsonExtension}.json"; // Path should exist, as you cant really write to the file before reading it first
+
+                SaveFile(filepath, JsonConvert.SerializeObject(objToWrite));
+
+                return true;
+            }
+            catch {
+                return false;
+            }
+        }
+
+        public static uint GetNextStreamVersion()
+        {
+            _streamVersion++;
+            return _streamVersion;
+        }
+    }
+}

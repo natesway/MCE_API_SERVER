@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MCE_API_SERVER.Views.ServerPage">
+    <ContentPage.Content>
+        <StackLayout BackgroundColor="Black">
+            <Button Text="Start" Clicked="Button_Clicked" BackgroundColor="Green"/>
+            <ScrollView Grid.Column="8" Grid.Row="8" HorizontalScrollBarVisibility="Always">
+                <StackLayout x:Name="Console">
+                </StackLayout>
+            </ScrollView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

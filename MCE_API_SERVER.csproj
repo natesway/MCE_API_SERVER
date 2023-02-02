@@ -1,0 +1,61 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <ProduceReferenceAssembly>true</ProduceReferenceAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Data\apiconfig.json" />
+    <None Remove="Data\challenges.zip" />
+    <None Remove="Data\efficiency_categories.zip" />
+    <None Remove="Data\encounterLocations.json" />
+    <None Remove="Data\items.zip" />
+    <None Remove="Data\journalCatalog.json" />
+    <None Remove="Data\levelDictionary.json" />
+    <None Remove="Data\productCatalog.json" />
+    <None Remove="Data\recipes.json" />
+    <None Remove="Data\seasonChallenges.json" />
+    <None Remove="Data\settings.json" />
+    <None Remove="Data\shopItemDictionary.json" />
+    <None Remove="Data\tappable.zip" />
+    <None Remove="Data\vanilla.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Data\apiconfig.json" />
+    <EmbeddedResource Include="Data\challenges.zip" />
+    <EmbeddedResource Include="Data\efficiency_categories.zip" />
+    <EmbeddedResource Include="Data\encounterLocations.json" />
+    <EmbeddedResource Include="Data\items.zip" />
+    <EmbeddedResource Include="Data\journalCatalog.json" />
+    <EmbeddedResource Include="Data\levelDictionary.json" />
+    <EmbeddedResource Include="Data\productCatalog.json" />
+    <EmbeddedResource Include="Data\recipes.json" />
+    <EmbeddedResource Include="Data\seasonChallenges.json" />
+    <EmbeddedResource Include="Data\settings.json" />
+    <EmbeddedResource Include="Data\shopItemDictionary.json" />
+    <EmbeddedResource Include="Data\tappable.zip" />
+    <EmbeddedResource Include="Data\vanilla.zip" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.26.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Utf8Json" Version="1.3.7" />
+    <PackageReference Include="Xamarin.Forms" Version="5.0.0.2545" />  
+    <PackageReference Include="Xamarin.Essentials" Version="1.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\ServerPage.xaml.cs">
+      <DependentUpon>ServerPage.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Views\ServerPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+</Project>
