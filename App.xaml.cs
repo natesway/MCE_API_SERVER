@@ -17,14 +17,20 @@ namespace MCE_API_SERVER
 
         protected override void OnStart()
         {
+            Log.Init();
+            Log.Information("Started app");
         }
 
         protected override void OnSleep()
         {
+            Log.Debug("Going to sleep");
+            Log.Dispose();
         }
 
         protected override void OnResume()
         {
+            Log.Init();
+            Log.Debug("Resumed from sleep");
         }
     }
 }

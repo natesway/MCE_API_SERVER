@@ -40,7 +40,7 @@ namespace MCE_API_SERVER.Utils
 		public static Dictionary<string, ProfileLevel> readLevelDictionary()
 		{
             string filepath = StateSingleton.config.LevelDictionaryFileLocation;
-            string levelsJson = Util.LoadSavedFileString(filepath);
+            string levelsJson = Util.LoadSavedServerFileString(filepath);
 			return JsonConvert.DeserializeObject<Dictionary<string, ProfileLevel>>(levelsJson);
 		}
 	}

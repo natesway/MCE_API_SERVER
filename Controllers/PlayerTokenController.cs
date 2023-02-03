@@ -169,7 +169,7 @@ namespace MCE_API_SERVER.Controllers
         [ServerHandle("/1/api/v1.1/recipes")]
         public static byte[] Get(ServerHandleArgs args)
         {
-            string recipeString = System.IO.File.ReadAllText(SavePath + StateSingleton.config.recipesFileLocation); // Since the serialized version has the properties mixed up
+            string recipeString = System.IO.File.ReadAllText(SavePath_Server + StateSingleton.config.recipesFileLocation); // Since the serialized version has the properties mixed up
             return Content(args, recipeString, "application/json");
         }
     }
@@ -180,7 +180,7 @@ namespace MCE_API_SERVER.Controllers
         [ServerHandle("/1/api/v1.1/journal/catalog")]
         public static byte[] GetCatalog(ServerHandleArgs args)
         {
-            StreamReader fs = new StreamReader(SavePath + StateSingleton.config.journalCatalogFileLocation);
+            StreamReader fs = new StreamReader(SavePath_Server + StateSingleton.config.journalCatalogFileLocation);
             return Content(args, fs.ReadToEnd(), "application/json");
         }
 
@@ -190,7 +190,8 @@ namespace MCE_API_SERVER.Controllers
             string authtoken = args.Headers["Authorization"];
             Models.Features.JournalResponse resp = JournalUtils.ReadJournalForPlayer(authtoken);
 
-            return Content(args, JsonConvert.SerializeObject(resp), "application/json");
+            return Content(args, Encoding.UTF8.GetString(Utf8Json.JsonSerializer.Serialize(resp)), "application/json");
+            //return Content(args, JsonConvert.SerializeObject(resp), "application/json");
         }
     }
 
@@ -249,7 +250,7 @@ namespace MCE_API_SERVER.Controllers
         [ServerHandle("/1/api/v1.1/products/catalog")]
         public static byte[] GetProductCatalog(ServerHandleArgs args)
         {
-            string catalog = System.IO.File.ReadAllText(SavePath + StateSingleton.config.productCatalogFileLocation); // Since the serialized version has the properties mixed up
+            string catalog = System.IO.File.ReadAllText(SavePath_Server + StateSingleton.config.productCatalogFileLocation); // Since the serialized version has the properties mixed up
             return Content(args, catalog, "application/json");
         }
 

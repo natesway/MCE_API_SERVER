@@ -19,10 +19,10 @@ namespace MCE_API_SERVER.Controllers
 			if (!int.TryParse(args.UrlArgs["tilePos1"], out tilePos1) || !int.TryParse(args.UrlArgs["tilePos2"], out tilePos2))
 				return Content(args, "hi!", "text/plain");
 
-			string targetTilePath = SavePath + $"tiles/16/{tilePos1}/{tilePos1}_{tilePos2}_16.png";
+			string targetTilePath = SavePath_Server + $"tiles/16/{tilePos1}/{tilePos1}_{tilePos2}_16.png";
 
 			if (!System.IO.File.Exists(targetTilePath)) {
-				bool boo = Tile.DownloadTile(tilePos1, tilePos2, SavePath + @"tiles/16/");
+				bool boo = Tile.DownloadTile(tilePos1, tilePos2, SavePath_Server + @"tiles/16/");
 
 				//Lets download that lovely tile now, Shall we?
 				if (boo == false) {

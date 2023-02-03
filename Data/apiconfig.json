@@ -1,0 +1,25 @@
+{
+	"baseServerIP": "http://127.0.0.1:5001",
+	"useBaseServerIP": "True",
+	"tileServerUrl": "https://c.tile.openstreetmap.org/16/",
+	"playfabTitleId": "20CA2",
+	"itemsFolderLocation": "items/",
+	"efficiencyCategoriesFolderLocation": "efficiency_categories/",
+	"journalCatalogFileLocation": "journalCatalog.json",
+	"recipesFileLocation": "recipes.json",
+	"settingsFileLocation": "settings.json",
+	"challengeStorageFolderLocation": "challenges/",
+	"activeSeasonChallenge": "f0532069-a70a-4a01-8611-f770bb46d9cd",
+	"buildplateStorageFolderLocation": "buildplates/",
+	"sharedBuildplateStorageFolderLocation": "shared_buildplates/",
+	"productCatalogFileLocation": "productCatalog.json",
+	"ShopItemDictionaryFileLocation": "shopItemDictionary.json",
+	"LevelDictionaryFileLocation": "levelDictionary.json",
+	"EncounterLocationsFileLocation": "encounterLocations.json",
+	"mixTappableSpawnAmount": 5,
+	"maxTappableSpawnAmount": 20,
+	"tappableSpawnRadius": 0.001,
+	"multiplayerAuthKeys": {
+		"192.168.1.112": "/g1xCS33QYGC+F2s016WXaQWT8ICnzJvdqcVltNtWljrkCyjd5Ut4tvy2d/IgNga0uniZxv/t0hELdZmvx+cdA=="
+	}
+}

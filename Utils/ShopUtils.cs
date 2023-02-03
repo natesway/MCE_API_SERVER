@@ -14,7 +14,7 @@ namespace MCE_API_SERVER.Utils
     {
         public static Dictionary<Guid, StoreItemInfo> readShopItemDictionary()
         {
-            string filepath = Util.SavePath + StateSingleton.config.ShopItemDictionaryFileLocation;
+            string filepath = Util.SavePath_Server + StateSingleton.config.ShopItemDictionaryFileLocation;
             string storeItemsJson = File.ReadAllText(filepath);
             return JsonConvert.DeserializeObject<Dictionary<Guid, StoreItemInfo>>(storeItemsJson);
         }

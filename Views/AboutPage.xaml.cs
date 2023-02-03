@@ -10,6 +10,8 @@ namespace MCE_API_SERVER.Views
         public AboutPage()
         {
             InitializeComponent();
+
+            VersionLabel.Text = $"Version: {Server.AppVersion}";
         }
     }
 }

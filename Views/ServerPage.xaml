@@ -4,11 +4,12 @@
              x:Class="MCE_API_SERVER.Views.ServerPage">
     <ContentPage.Content>
         <StackLayout BackgroundColor="Black">
-            <Button Text="Start" Clicked="Button_Clicked" BackgroundColor="Green"/>
-            <ScrollView Grid.Column="8" Grid.Row="8" HorizontalScrollBarVisibility="Always">
+            <Button Text="Start" Clicked="Btn_StartStop_Clicked" BackgroundColor="Green"/>
+            <ScrollView Grid.Column="8" Grid.Row="8" HorizontalScrollBarVisibility="Always" VerticalOptions="StartAndExpand">
                 <StackLayout x:Name="Console">
                 </StackLayout>
             </ScrollView>
+            <Button Text="Clear" VerticalOptions="End" Clicked="Btn_Clear_Clicked"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

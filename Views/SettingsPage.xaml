@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MCE_API_SERVER.Views.SettingsPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Button Text="Save" Clicked="Btn_Save_Clicked"/>
+            <ScrollView>
+                <StackLayout>
+                    <Label Text="Console" VerticalOptions="Start" HorizontalOptions="CenterAndExpand" FontSize="Large"/>
+                    <Grid>
+                        <Label Text="Log requests" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <CheckBox x:Name="LogRequestsCheck" BackgroundColor="White" Color="Black" HorizontalOptions="End"/>
+                    </Grid>
+                    <Grid>
+                        <Label Text="Log message time" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <CheckBox x:Name="LogMesTimeCheck" BackgroundColor="White" Color="Black" HorizontalOptions="End"/>
+                    </Grid>
+                    <Grid>
+                        <Label Text="Log message type" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <CheckBox x:Name="LogMesTypeCheck" BackgroundColor="White" Color="Black" HorizontalOptions="End"/>
+                    </Grid>
+                    <Grid>
+                        <Label Text="Max messages in console" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Entry x:Name="MaxMesInput" Keyboard="Numeric" Placeholder="Number" MaxLength="4" HorizontalOptions="End"/>
+                    </Grid>
+                    <Grid>
+                        <Label Text="Message type filter " VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Button Text="Select" HorizontalOptions="End" Clicked="Btn_MesFilter_Clicked" CornerRadius="8"/>
+                    </Grid>
+                    <Label Text="Selected:" HorizontalOptions="Start"/>
+                    <StackLayout x:Name="SelectedFilterContainer" Margin="15, 0, 0, 0">
+                        
+                    </StackLayout>
+                </StackLayout>
+            </ScrollView>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

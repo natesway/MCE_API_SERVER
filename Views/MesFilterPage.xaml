@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MCE_API_SERVER.Views.MesFilterPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Label Text="Select what message types to log" VerticalOptions="Start" HorizontalOptions="CenterAndExpand" FontSize="Medium"/>
+            <StackLayout x:Name="layout">
+                
+            </StackLayout>
+            <Button Text="OK" Clicked="OK_Button_Clicked" HorizontalOptions="Center" CornerRadius="8" FontSize="Medium" WidthRequest="70"/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

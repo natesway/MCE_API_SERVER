@@ -19,6 +19,8 @@ namespace MCE_API_SERVER
 {
     public static class Server
     {
+        public const string AppVersion = "v0.0.1";
+
         public static Thread serverThread;
 
         public static bool Running { get; private set; }
@@ -59,62 +61,97 @@ namespace MCE_API_SERVER
                 }
             }
 
-            // "extract" files
-            if (!Directory.Exists(Util.SavePath + "items")) {
-                // items
-                Util.LoadEmbededFile("items.zip", out byte[] items);
-                Util.SaveFile("items.zip", items);
-                ZipFile.ExtractToDirectory(Util.SavePath + "items.zip", Util.SavePath);
-                File.Delete(Util.SavePath + "items.zip");
-                // efficiency categories
-                Util.LoadEmbededFile("efficiency_categories.zip", out byte[] categories);
-                Util.SaveFile("efficiency_categories.zip", categories);
-                ZipFile.ExtractToDirectory(Util.SavePath + "efficiency_categories.zip", Util.SavePath);
-                File.Delete(Util.SavePath + "efficiency_categories.zip");
-                // challenges
-                Util.LoadEmbededFile("challenges.zip", out byte[] challenges);
-                Util.SaveFile("challenges.zip", challenges);
-                ZipFile.ExtractToDirectory(Util.SavePath + "challenges.zip", Util.SavePath);
-                File.Delete(Util.SavePath + "challenges.zip");
-                // items
-                Util.LoadEmbededFile("tappable.zip", out byte[] tappable);
-                Util.SaveFile("tappable.zip", tappable);
-                ZipFile.ExtractToDirectory(Util.SavePath + "tappable.zip", Util.SavePath);
-                File.Delete(Util.SavePath + "tappable.zip");
-                // config
-                Directory.CreateDirectory(Util.SavePath + "config");
-                Util.LoadEmbededFile("apiconfig.json", out byte[] config);
-                Util.SaveFile("config/apiconfig.json", config);
-                // other
-                Util.LoadEmbededFile("encounterLocations.json", out byte[] encounterLocations);
-                Util.SaveFile("encounterLocations.json", encounterLocations);
-                Util.LoadEmbededFile("journalCatalog.json", out byte[] journalCatalog);
-                Util.SaveFile("journalCatalog.json", journalCatalog);
-                Util.LoadEmbededFile("levelDictionary.json", out byte[] levelDictionary);
-                Util.SaveFile("levelDictionary.json", levelDictionary);
-                Util.LoadEmbededFile("productCatalog.json", out byte[] productCatalog);
-                Util.SaveFile("productCatalog.json", productCatalog);
-                Util.LoadEmbededFile("seasonChallenges.json", out byte[] seasonChallenges);
-                Util.SaveFile("seasonChallenges.json", seasonChallenges);
-                Util.LoadEmbededFile("settings.json", out byte[] settings);
-                Util.SaveFile("settings.json", settings);
-                Util.LoadEmbededFile("shopItemDictionary.json", out byte[] shopItemDictionary);
-                Util.SaveFile("shopItemDictionary.json", shopItemDictionary);
-                Util.LoadEmbededFile("recipes.json", out byte[] recipes);
-                Util.SaveFile("recipes.json", recipes);
+            try {
+                ExtractFiles();
+                Log.Debug("Extracted files");
+            } catch (Exception ex) {
+                Log.Error($"Couldn't extract files, deleting \"{Util.SavePath_Server}\" might help");
+                Log.Exception(ex);
             }
+
             StateSingleton.config = StateSingleton.ServerConfig.getFromFile();
-            StateSingleton.catalog = CatalogResponse.FromFiles(Util.SavePath + StateSingleton.config.itemsFolderLocation, Util.SavePath + StateSingleton.config.efficiencyCategoriesFolderLocation);
-            StateSingleton.recipes = Recipes.FromFile(Util.SavePath + StateSingleton.config.recipesFileLocation);
-            StateSingleton.settings = SettingsResponse.FromFile(Util.SavePath + StateSingleton.config.settingsFileLocation);
-            StateSingleton.challengeStorage = ChallengeStorage.FromFiles(Util.SavePath + StateSingleton.config.challengeStorageFolderLocation);
-            StateSingleton.productCatalog = ProductCatalogResponse.FromFile(Util.SavePath + StateSingleton.config.productCatalogFileLocation);
+            StateSingleton.catalog = CatalogResponse.FromFiles(Util.SavePath_Server + StateSingleton.config.itemsFolderLocation, Util.SavePath_Server + StateSingleton.config.efficiencyCategoriesFolderLocation);
+            StateSingleton.recipes = Recipes.FromFile(Util.SavePath_Server + StateSingleton.config.recipesFileLocation);
+            StateSingleton.settings = SettingsResponse.FromFile(Util.SavePath_Server + StateSingleton.config.settingsFileLocation);
+            StateSingleton.challengeStorage = ChallengeStorage.FromFiles(Util.SavePath_Server + StateSingleton.config.challengeStorageFolderLocation);
+            StateSingleton.productCatalog = ProductCatalogResponse.FromFile(Util.SavePath_Server + StateSingleton.config.productCatalogFileLocation);
             StateSingleton.tappableData = TappableUtils.loadAllTappableSets();
             StateSingleton.activeTappables = new Dictionary<Guid, LocationResponse.ActiveLocationStorage>();
             StateSingleton.levels = ProfileUtils.readLevelDictionary();
             StateSingleton.shopItems = ShopUtils.readShopItemDictionary();
 
             Log.Information("Server initialized");
+        }
+
+        private static void ExtractFiles()
+        {
+            if (!Directory.Exists(Util.SavePath_Server + "items")) {
+                Util.LoadEmbededFile("items.zip", out byte[] items);
+                Util.SaveServerFile("items.zip", items);
+                ZipFile.ExtractToDirectory(Util.SavePath_Server + "items.zip", Util.SavePath_Server);
+                File.Delete(Util.SavePath_Server + "items.zip");
+            }
+            // efficiency categories
+            if (!Directory.Exists(Util.SavePath_Server + "efficiency_categories")) {
+                Util.LoadEmbededFile("efficiency_categories.zip", out byte[] categories);
+                Util.SaveServerFile("efficiency_categories.zip", categories);
+                ZipFile.ExtractToDirectory(Util.SavePath_Server + "efficiency_categories.zip", Util.SavePath_Server);
+                File.Delete(Util.SavePath_Server + "efficiency_categories.zip");
+            }
+            // challenges
+            if (!Directory.Exists(Util.SavePath_Server + "challenges")) {
+                Util.LoadEmbededFile("challenges.zip", out byte[] challenges);
+                Util.SaveServerFile("challenges.zip", challenges);
+                ZipFile.ExtractToDirectory(Util.SavePath_Server + "challenges.zip", Util.SavePath_Server);
+                File.Delete(Util.SavePath_Server + "challenges.zip");
+            }
+            // items
+            if (!Directory.Exists(Util.SavePath_Server + "tappable")) {
+                Util.LoadEmbededFile("tappable.zip", out byte[] tappable);
+                Util.SaveServerFile("tappable.zip", tappable);
+                ZipFile.ExtractToDirectory(Util.SavePath_Server + "tappable.zip", Util.SavePath_Server);
+                File.Delete(Util.SavePath_Server + "tappable.zip");
+            }
+            // config
+            if (!Directory.Exists(Util.SavePath_Server + "config"))
+                Directory.CreateDirectory(Util.SavePath_Server + "config");
+            if (!File.Exists(Util.SavePath_Server + "config/apiconfig.json")) {
+                Util.LoadEmbededFile("apiconfig.json", out byte[] config);
+                Util.SaveServerFile("config/apiconfig.json", config);
+            }
+            // other
+            if (!File.Exists(Util.SavePath_Server + "encounterLocations.json")) {
+                Util.LoadEmbededFile("encounterLocations.json", out byte[] encounterLocations);
+                Util.SaveServerFile("encounterLocations.json", encounterLocations);
+            }
+            if (!File.Exists(Util.SavePath_Server + "journalCatalog.json")) {
+                Util.LoadEmbededFile("journalCatalog.json", out byte[] journalCatalog);
+                Util.SaveServerFile("journalCatalog.json", journalCatalog);
+            }
+            if (!File.Exists(Util.SavePath_Server + "levelDictionary.json")) {
+                Util.LoadEmbededFile("levelDictionary.json", out byte[] levelDictionary);
+                Util.SaveServerFile("levelDictionary.json", levelDictionary);
+            }
+            if (!File.Exists(Util.SavePath_Server + "productCatalog.json")) {
+                Util.LoadEmbededFile("productCatalog.json", out byte[] productCatalog);
+                Util.SaveServerFile("productCatalog.json", productCatalog);
+            }
+            if (!File.Exists(Util.SavePath_Server + "seasonChallenges.json")) {
+                Util.LoadEmbededFile("seasonChallenges.json", out byte[] seasonChallenges);
+                Util.SaveServerFile("seasonChallenges.json", seasonChallenges);
+            }
+            if (!File.Exists(Util.SavePath_Server + "settings.json")) {
+                Util.LoadEmbededFile("settings.json", out byte[] settings);
+                Util.SaveServerFile("settings.json", settings);
+            }
+            if (!File.Exists(Util.SavePath_Server + "shopItemDictionary.json")) {
+                Util.LoadEmbededFile("shopItemDictionary.json", out byte[] shopItemDictionary);
+                Util.SaveServerFile("shopItemDictionary.json", shopItemDictionary);
+            }
+            if (!File.Exists(Util.SavePath_Server + "recipes.json")) {
+                Util.LoadEmbededFile("recipes.json", out byte[] recipes);
+                Util.SaveServerFile("recipes.json", recipes);
+            }
         }
 
         public static void Start()
@@ -128,6 +165,7 @@ namespace MCE_API_SERVER
             serverThread = new Thread(Run);
             Running = true;
             serverThread.Start();
+            Log.Information("Server started");
         }
 
         public static void Stop()
@@ -135,6 +173,7 @@ namespace MCE_API_SERVER
             Running = false;
             listener.Stop();
             listener = null;
+            Log.Information("Server stopped");
         }
 
         private static void Run()
@@ -210,7 +249,8 @@ namespace MCE_API_SERVER
                     sub = fullSub.Split('?')[0];
                     #endregion
 
-                    Log.Debug($"[{DateTime.Now.Hour}:{DateTime.Now.Minute}:{DateTime.Now.Second}] {sub} {type}");
+                    if (Settings.LogRequests)
+                        Log.Debug($"{sub} {type}", true/*log even if filter for debug is false*/);
 
                     byte[] resp = new byte[0];
 
@@ -228,7 +268,7 @@ namespace MCE_API_SERVER
                             }
 
                             if (handles[i].Urls[j] == sub) {
-                                resp = handles[i].Function(new ServerHandleArgs(data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type));
+                                resp = handles[i].Function(new ServerHandleArgs(fullSub, data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type));
                                 goto response;
                             } else { // invalid or url values
                                 string[] recSubs = sub.Split('/'); // received
@@ -295,7 +335,7 @@ namespace MCE_API_SERVER
                                     int z = 0;
                                 }
 
-                                resp = handles[i].Function(new ServerHandleArgs(data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type, urlArgs));
+                                resp = handles[i].Function(new ServerHandleArgs(fullSub, data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type, urlArgs));
                                 goto response;
                             }
                         }
@@ -340,8 +380,9 @@ namespace MCE_API_SERVER
         public string Method;
         public Dictionary<string, string> UrlArgs;
         public Dictionary<string, string> Headers;
+        public Dictionary<string, string> Query;
 
-        public ServerHandleArgs(string data, byte[] dataBytes, string content, IPEndPoint sender, string method, Dictionary<string, string> urlArgs = null)
+        public ServerHandleArgs(string fullUrl, string data, byte[] dataBytes, string content, IPEndPoint sender, string method, Dictionary<string, string> urlArgs = null)
         {
             Data = data;
             DataBytes = dataBytes;
@@ -353,13 +394,31 @@ namespace MCE_API_SERVER
             else
                 UrlArgs = urlArgs;
 
+            // Parse headers
             Headers = new Dictionary<string, string>();
-            string headers = Data.Split(new string[] { "\r\n\r\n" }, StringSplitOptions.None)[0];
-            string[] split = headers.Split(new string[] { "\r\n" }, StringSplitOptions.None);
-            for (int i = 1; i < split.Length; i++) {
-                string s = split[i].Replace(" ", "");
+            string header = Data.Split(new string[] { "\r\n\r\n" }, StringSplitOptions.None)[0];
+            string[] headers = header.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+            for (int i = 1; i < headers.Length; i++) {
+                string s = headers[i].Replace(" ", "");
                 int index = s.IndexOf(':');
                 Headers.Add(s.Substring(0, index), s.Substring(index + 1));
+            }
+
+            // Parse query
+            Query = new Dictionary<string, string>();
+            if (fullUrl.Contains('?')) {
+                try {
+                    string queryString = fullUrl.Substring(fullUrl.IndexOf('?') + 1);
+                    string[] querys = queryString.Split('&', ';'); // ; isn't recomended, just in case
+                    for (int i = 0; i < querys.Length; i++) {
+                        string[] split = querys[i].Split('=');
+                        if (split.Length > 1)
+                            Query.Add(split[0], split[1]);
+                    }
+                }
+                catch {
+                    Log.Error($"Failed to make query for url {fullUrl}");
+                }
             }
         }
     }

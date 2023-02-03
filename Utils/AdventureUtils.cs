@@ -64,7 +64,7 @@ namespace MCE_API_SERVER.Utils
 
 		public static List<Coordinate> readEncounterLocations()
 		{
-            string filepath = Util.SavePath + StateSingleton.config.EncounterLocationsFileLocation;
+            string filepath = Util.SavePath_Server + StateSingleton.config.EncounterLocationsFileLocation;
             string encouterLocationsJson = File.ReadAllText(filepath);
 			return JsonConvert.DeserializeObject<List<Coordinate>>(encouterLocationsJson);
 		}

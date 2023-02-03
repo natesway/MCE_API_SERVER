@@ -57,7 +57,7 @@ namespace MCE_API_SERVER
             //Load method
             public static ServerConfig getFromFile()
             {
-                string file = File.ReadAllText(Util.SavePath + "config/apiconfig.json");
+                string file = File.ReadAllText(Util.SavePath_Server + "config/apiconfig.json");
                 return JsonConvert.DeserializeObject<ServerConfig>(file);
             }
         }

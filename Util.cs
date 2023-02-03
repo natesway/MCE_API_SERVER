@@ -10,15 +10,16 @@ namespace MCE_API_SERVER
 {
     public static class Util
     {
-        public static string SavePath = "/storage/emulated/0/Android/data/com.CuRsEd_GaMeS.mce_api_server/files/";//Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/";
+        public static string SavePath = "/storage/emulated/0/Android/data/com.CuRsEd_GaMeS.mce_api_server/";
+        public static string SavePath_Server = SavePath + "server/";//Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/";
 
         static Util()
         {
-            if (!Directory.Exists(SavePath))
-                Directory.CreateDirectory(SavePath);
+            if (!Directory.Exists(SavePath_Server))
+                Directory.CreateDirectory(SavePath_Server);
         }
 
-        private static Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        public static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
 
         public static byte[] Ok()
         {
@@ -27,9 +28,23 @@ namespace MCE_API_SERVER
             return respHeader;
         }
 
+        public static byte[] Accepted()
+        {
+            string respHeaderString = $"HTTP/1.1 202 Accepted\r\nServer: csharp_server\r\n\r\n";
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            return respHeader;
+        }
+
         public static byte[] Unauthorized()
         {
             string respHeaderString = $"HTTP/1.1 401 Unauthorized\r\nServer: csharp_server\r\n\r\n";
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            return respHeader;
+        }
+
+        public static byte[] BadRequest()
+        {
+            string respHeaderString = $"HTTP/1.1 400 Bad Request\r\nServer: csharp_server\r\n\r\n";
             byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
             return respHeader;
         }
@@ -60,13 +75,6 @@ namespace MCE_API_SERVER
             return resp;
         }
 
-        public static byte[] BadRequest()
-        {
-            string respHeaderString = $"HTTP/1.1 400 Bad Request\r\nServer: csharp_server\r\n\r\n";
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
-            return respHeader;
-        }
-
         public static byte[] File(ServerHandleArgs args, byte[] respData, string respType, System.Net.Mime.ContentDisposition cd)
         {
             string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\nContent-Type: {respType}\r\nContent-Length: {cd.Size}\r\nContent-Disposition: {cd.ToString()}\r\nContent-Transfer-Encoding: binary\r\n\r\n";
@@ -84,21 +92,24 @@ namespace MCE_API_SERVER
             return resp;
         }
 
+        public static string GetFullResourceName(string name) => $"MCE_API_SERVER.Data.{name.Replace('/', '.')}";
         public static bool LoadEmbededFile(string name, out byte[] data)
         {
             data = new byte[0];
-            //string[] names = currentAssembly.GetManifestResourceNames();
-            Stream stream = currentAssembly.GetManifestResourceStream($"MCE_API_SERVER.Data.{name.Replace('/', '.')}");
+
+            Stream stream = CurrentAssembly.GetManifestResourceStream(GetFullResourceName(name));
             if (stream == null) {
                 Log.Error($"Couldn't load embeded file \"{name}\"");
                 return false;
             }
+
             data = new byte[stream.Length];
             stream.Read(data, 0, data.Length);
             stream.Close();
             return true;
         }
 
+        // normal
         public static string LoadSavedFileString(string name)
         {
             byte[] bytes = LoadSavedFile(name);
@@ -123,6 +134,31 @@ namespace MCE_API_SERVER
         public static bool FileExists(string name)
             => System.IO.File.Exists(SavePath + name);
 
+        // server
+        public static string LoadSavedServerFileString(string name)
+        {
+            byte[] bytes = LoadSavedServerFile(name);
+            if (bytes == null)
+                return string.Empty;
+            else
+                return Encoding.UTF8.GetString(bytes);
+        }
+        public static byte[] LoadSavedServerFile(string name)
+        {
+            if (!System.IO.File.Exists(SavePath_Server + name))
+                return null;
+            else
+                return System.IO.File.ReadAllBytes(SavePath_Server + name);
+        }
+
+        public static void SaveServerFile(string name, string data)
+            => SaveServerFile(name, Encoding.UTF8.GetBytes(data));
+        public static void SaveServerFile(string name, byte[] data)
+            => System.IO.File.WriteAllBytes(SavePath_Server + name, data);
+
+        public static bool ServerFileExists(string name)
+            => System.IO.File.Exists(SavePath_Server + name);
+
 
         private static uint _streamVersion = 0;
 
@@ -131,14 +167,14 @@ namespace MCE_API_SERVER
             string filepath = $"players/{playerId}/{fileNameWithoutJsonExtension}.json";
 
             byte[] data = new byte[0];
-            if (!FileExists(filepath)) {
-                if (!Directory.Exists(SavePath + $"players/{playerId}"))
-                    Directory.CreateDirectory(SavePath + $"players/{playerId}");
+            if (!ServerFileExists(filepath)) {
+                if (!Directory.Exists(SavePath_Server + $"players/{playerId}"))
+                    Directory.CreateDirectory(SavePath_Server + $"players/{playerId}");
 
                 SetupJsonFile<T>(playerId, filepath); // Generic setup for each player specific json type
             }
 
-            byte[] invjson = LoadSavedFile(filepath);
+            byte[] invjson = LoadSavedServerFile(filepath);
             T parsedobj;
             try {
                 parsedobj = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(invjson));
@@ -154,7 +190,7 @@ namespace MCE_API_SERVER
                 Log.Information($"[{playerId}]: Creating default json with Type: {typeof(T)}.");
                 T obj = new T(); // TODO: Implement Default Values for each player property/json we store for them
 
-                SaveFile(filepath, JsonConvert.SerializeObject(obj));
+                SaveServerFile(filepath, JsonConvert.SerializeObject(obj));
                 return true;
             }
             catch (Exception ex) {
@@ -163,7 +199,7 @@ namespace MCE_API_SERVER
                     try {
                         T obj = new T(); // TODO: Implement Default Values for each player property/json we store for them
 
-                        SaveFile(filepath, Utf8Json.JsonSerializer.Serialize(obj));
+                        SaveServerFile(filepath, Utf8Json.JsonSerializer.Serialize(obj));
                         return true;
                     } catch (Exception e) {
                         Log.Error($"[{playerId}]: Creating default json failed! Type: {typeof(T)}");
@@ -182,7 +218,17 @@ namespace MCE_API_SERVER
             try {
                 string filepath =  $"players/{playerId}/{fileNameWithoutJsonExtension}.json"; // Path should exist, as you cant really write to the file before reading it first
 
-                SaveFile(filepath, JsonConvert.SerializeObject(objToWrite));
+                try {
+                    string s = JsonConvert.SerializeObject(objToWrite);
+
+                    if (s == null || s == "") // failed
+                        throw new Exception();
+
+                    SaveServerFile(filepath, s);
+                }
+                catch {
+                    SaveServerFile(filepath, Utf8Json.JsonSerializer.Serialize(objToWrite));
+                }
 
                 return true;
             }

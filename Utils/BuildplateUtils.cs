@@ -127,12 +127,12 @@ namespace MCE_API_SERVER.Utils
 		public static SharedBuildplateResponse ReadSharedBuildplate(string buildplateId)
 		{
             string filepath = StateSingleton.config.sharedBuildplateStorageFolderLocation + $"{buildplateId}.json";
-			if (!FileExists(filepath)) {
+			if (!ServerFileExists(filepath)) {
 				Log.Error($"Error: Tried to read buildplate that does not exist! BuildplateID: {buildplateId}");
 				return null;
 			}
 
-            string buildplateJson = Util.LoadSavedFileString(filepath);
+            string buildplateJson = Util.LoadSavedServerFileString(filepath);
             SharedBuildplateResponse parsedobj = JsonConvert.DeserializeObject<SharedBuildplateResponse>(buildplateJson);
 			return parsedobj;
 		}
@@ -141,18 +141,18 @@ namespace MCE_API_SERVER.Utils
 		{
             string filepath = StateSingleton.config.sharedBuildplateStorageFolderLocation + $"{buildplateId}.json";
 
-			SaveFile(filepath, JsonConvert.SerializeObject(data));
+			SaveServerFile(filepath, JsonConvert.SerializeObject(data));
 		}
 
 		public static BuildplateData ReadBuildplate(Guid buildplateId)
 		{
             string filepath = StateSingleton.config.buildplateStorageFolderLocation + $"{buildplateId}.json";
-			if (!FileExists(filepath)) {
+			if (!ServerFileExists(filepath)) {
 				Log.Error($"Error: Tried to read buildplate that does not exist! BuildplateID: {buildplateId}");
 				return null;
 			}
 
-            string buildplateJson = LoadSavedFileString(filepath);
+            string buildplateJson = LoadSavedServerFileString(filepath);
             BuildplateData parsedobj = JsonConvert.DeserializeObject<BuildplateData>(buildplateJson);
 			return parsedobj;
 		}
@@ -164,7 +164,7 @@ namespace MCE_API_SERVER.Utils
 
 			data.lastUpdated = DateTime.UtcNow;
 
-			SaveFile(filepath, JsonConvert.SerializeObject(data));
+			SaveServerFile(filepath, JsonConvert.SerializeObject(data));
 		}
 
 		public static void WriteBuildplate(BuildplateShareResponse shareResponse)

@@ -12,18 +12,23 @@ namespace MCE_API_SERVER.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ServerPage : ContentPage
     {
-        private StackLayout Logger;
-
         public ServerPage()
         {
             InitializeComponent();
-            Logger = (StackLayout)FindByName("Console");
             Device.StartTimer(new TimeSpan(0, 0, 1), () =>
             {
                 while (Log.ToLog.Count > 0) {
                     Log.LogMessage message = Log.ToLog.Dequeue();
+
+                    string text = "";
+                    if (Settings.LogMesType)
+                        text += $"[{Enum.GetName(typeof(Log.LogType), message.Type)}] ";
+                    if (Settings.LogMesTime)
+                        text += $"[{message.Time.Hour}:{message.Time.Minute}:{message.Time.Second}] ";
+                    text += message.Content;
+
                     Label l = new Label();
-                    l.Text = $"[{Enum.GetName(typeof(Log.LogType), message.Type)}] {message.Content}";
+                    l.Text = text;
                     l.TextColor = Log.TypeToColor[message.Type];
                     l.FontSize = 12d;
                     l.VerticalOptions = LayoutOptions.StartAndExpand;
@@ -35,13 +40,20 @@ namespace MCE_API_SERVER.Views
                             Clipboard.SetTextAsync(l.Text).Wait();
                         })
                     });
-                    Logger.Children.Add(l);
+
+                    // Console is stack layout
+                    Console.Children.Add(l);
                 }
+
+                if (Console.Children.Count > Settings.MaxMessagesInConsole)
+                    while (Console.Children.Count > Settings.MaxMessagesInConsole)
+                        Console.Children.RemoveAt(0);
+
                 return true;
             });
         }
 
-        private void Button_Clicked(object sender, EventArgs e)
+        private void Btn_StartStop_Clicked(object sender, EventArgs e)
         {
             if (Server.Running)
                 Server.Stop();
@@ -51,6 +63,12 @@ namespace MCE_API_SERVER.Views
             Button b = (Button)sender;
             b.Text = Server.Running ? "Stop" : "Start";
             b.BackgroundColor = Server.Running ? Color.Red : Color.Green;
+        }
+
+        private void Btn_Clear_Clicked(object sender, EventArgs e)
+        {
+            Console.Children.Clear();
+            Log.Information("Cleared console");
         }
     }
 }

@@ -55,7 +55,7 @@ namespace MCE_API_SERVER.Utils
 		{
 			Log.Information("[Tappables] Loading tappable data.");
 			Dictionary<string, TappableLootTable> tappableData = new Dictionary<string, TappableLootTable>();
-			string[] files = Directory.GetFiles(SavePath + "tappable", "*.json");
+			string[] files = Directory.GetFiles(SavePath_Server + "tappable", "*.json");
 			foreach (string file in files) {
 				TappableLootTable table = JsonConvert.DeserializeObject<TappableLootTable>(System.IO.File.ReadAllText(file));
 				tappableData.Add(table.tappableID, table);
@@ -131,6 +131,14 @@ namespace MCE_API_SERVER.Utils
 
 		public static TappableResponse RedeemTappableForPlayer(string playerId, TappableRequest request)
 		{
+			if (!StateSingleton.activeTappables.ContainsKey(request.id)) {
+				Log.Warning($"Tappable {request.id} wasn't found, cant be redeemed");
+				return new TappableResponse()
+				{
+					updates = new Updates(),
+				};
+            }
+
             LocationResponse.ActiveLocationStorage tappable = StateSingleton.activeTappables[request.id];
 
             TappableResponse response = new TappableResponse()
