@@ -17,7 +17,7 @@ namespace MCE_API_SERVER
 
         protected override void OnStart()
         {
-            Log.Init();
+            Log.Init(true);
             Log.Information("Started app");
         }
 
@@ -29,7 +29,7 @@ namespace MCE_API_SERVER
 
         protected override void OnResume()
         {
-            Log.Init();
+            Log.Init(false);
             Log.Debug("Resumed from sleep");
         }
     }

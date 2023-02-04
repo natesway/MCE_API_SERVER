@@ -19,7 +19,7 @@ namespace MCE_API_SERVER
 {
     public static class Server
     {
-        public const string AppVersion = "v0.0.1";
+        public const string AppVersion = "v1.0";
 
         public static Thread serverThread;
 
@@ -185,9 +185,9 @@ namespace MCE_API_SERVER
                     #region parse
                     string data = "";
                     List<byte> dataBytes = new List<byte>();
-                    byte[] bytes = new byte[2048];
+                    byte[] bytes = new byte[4096];
 
-                    client.ReceiveBufferSize = 2048;
+                    client.ReceiveBufferSize = bytes.Length;
                     int c = 0;
                     while (client.Client.Available > 0 || c < 5) {
                         if (client.Client.Available > 0) {
@@ -273,11 +273,9 @@ namespace MCE_API_SERVER
                             } else { // invalid or url values
                                 string[] recSubs = sub.Split('/'); // received
                                 string[] compSubs = handles[i].Urls[j].Split('/'); // comparing
-                                if (recSubs.Length != compSubs.Length)
+                                if (recSubs.Length != compSubs.Length || !handles[i].Urls[j].Contains('{'))
                                     continue;
-                                if (handles[i].Urls[j].Contains("cdn") && sub.Contains("cdn")) {
-                                    int jj = 0;
-                                }
+
                                 Dictionary<string, string> urlArgs = new Dictionary<string, string>();
                                 bool fail = false;
                                 for (int x = 0; x < recSubs.Length; x++) {
@@ -437,6 +435,11 @@ namespace MCE_API_SERVER
                     Urls[i] = "/" + Urls[i];
             Types = types;
             Function = _function;
+        }
+
+        public override string ToString()
+        {
+            return Urls[0];
         }
     }
 }

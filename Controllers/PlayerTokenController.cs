@@ -54,7 +54,7 @@ namespace MCE_API_SERVER.Controllers
     [ServerHandleContainer]
     public static class PlayerLanguageController
     {
-        [ServerHandle("/1/api/v{version:apiVersion}/player/profile/language")]
+        [ServerHandle("/1/api/v1.1/player/profile/language")]
         public static byte[] Get(ServerHandleArgs args)
         {
             return Ok();
@@ -258,7 +258,7 @@ namespace MCE_API_SERVER.Controllers
         public static byte[] GetStoreItemInfo(ServerHandleArgs args)
         {
             string body = args.Content;
-            var response = ShopUtils.getStoreItemInfo(JsonConvert.DeserializeObject<List<StoreItemInfo>>(body));
+            StoreItemInfoResponse response = ShopUtils.getStoreItemInfo(JsonConvert.DeserializeObject<List<StoreItemInfo>>(body));
             return Content(args, JsonConvert.SerializeObject(response), "application/json");
         }
 
@@ -266,7 +266,7 @@ namespace MCE_API_SERVER.Controllers
         public static byte[] ItemPurchase(ServerHandleArgs args)
         {
             string body = args.Content;
-            var response = ShopUtils.purchase(args.Headers["Authorization"], JsonConvert.DeserializeObject<PurchaseItemRequest>(body));
+            RubyResponse response = ShopUtils.purchase(args.Headers["Authorization"], JsonConvert.DeserializeObject<PurchaseItemRequest>(body));
             return Content(args, JsonConvert.SerializeObject(response), "application/json");
         }
 
@@ -274,7 +274,7 @@ namespace MCE_API_SERVER.Controllers
         public static byte[] ItemPurchaseV2(ServerHandleArgs args)
         {
             string body = args.Content;
-            var response = ShopUtils.purchaseV2(args.Headers["Authorization"], JsonConvert.DeserializeObject<PurchaseItemRequest>(body));
+            SplitRubyResponse response = ShopUtils.purchaseV2(args.Headers["Authorization"], JsonConvert.DeserializeObject<PurchaseItemRequest>(body));
             return Content(args, JsonConvert.SerializeObject(response), "application/json");
         }
     } // TODO: Needs Playfab counterpart. When that is in place we can implement buildplate previews.

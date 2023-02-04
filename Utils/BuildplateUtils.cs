@@ -147,13 +147,14 @@ namespace MCE_API_SERVER.Utils
 		public static BuildplateData ReadBuildplate(Guid buildplateId)
 		{
             string filepath = StateSingleton.config.buildplateStorageFolderLocation + $"{buildplateId}.json";
+
 			if (!ServerFileExists(filepath)) {
 				Log.Error($"Error: Tried to read buildplate that does not exist! BuildplateID: {buildplateId}");
 				return null;
 			}
 
             string buildplateJson = LoadSavedServerFileString(filepath);
-            BuildplateData parsedobj = JsonConvert.DeserializeObject<BuildplateData>(buildplateJson);
+			BuildplateData parsedobj = Utf8Json.JsonSerializer.Deserialize<BuildplateData>(buildplateJson);//JsonConvert.DeserializeObject<BuildplateData>(buildplateJson);
 			return parsedobj;
 		}
 

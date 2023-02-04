@@ -49,6 +49,13 @@ namespace MCE_API_SERVER
             return respHeader;
         }
 
+        public static byte[] NoContent()
+        {
+            string respHeaderString = $"HTTP/1.1 204 No Content\r\nServer: csharp_server\r\n\r\n";
+            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            return respHeader;
+        }
+
         public static byte[] Content(ServerHandleArgs args, string respData, string respType, params string[] headers)
             => CreateResp(args, Encoding.UTF8.GetBytes(respData), respType, headers);
         public static byte[] CreateResp(ServerHandleArgs args, byte[] respData, string respType, params string[] headers)
@@ -158,6 +165,15 @@ namespace MCE_API_SERVER
 
         public static bool ServerFileExists(string name)
             => System.IO.File.Exists(SavePath_Server + name);
+
+        public static string ByteArrayToHexString(byte[] ba)
+        {
+            StringBuilder hex = new StringBuilder(ba.Length * 2);
+            foreach (byte b in ba)
+                hex.AppendFormat("{0:x2}", b);
+            return hex.ToString();
+        }
+
 
 
         private static uint _streamVersion = 0;

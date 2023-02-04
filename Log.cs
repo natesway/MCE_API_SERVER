@@ -15,9 +15,9 @@ namespace MCE_API_SERVER
 
         private static FileStream saveStream;
 
-        public static void Init()
+        public static void Init(bool coldBoot/*also called when waking from sleep, if from sleep continue in current log file*/)
         {
-            if (Util.FileExists(saveFileName)) {
+            if (Util.FileExists(saveFileName) && coldBoot) {
                 if (!Directory.Exists(Util.SavePath + saveHistoryName))
                     Directory.CreateDirectory(Util.SavePath + saveHistoryName);
 
@@ -63,7 +63,7 @@ namespace MCE_API_SERVER
         private static void LogMes(LogMessage message, int filterIndex, bool forceLog)
         {
             if (saveStream == null)
-                Init();
+                Init(false);
 
             string messageText = $"[{Enum.GetName(typeof(LogType), message.Type)}] [{message.Time.Day}.{message.Time.Month}.{message.Time.Year} " +
                 $"{message.Time.Hour}:{message.Time.Minute}:{message.Time.Second}] {message.Content}\n";
