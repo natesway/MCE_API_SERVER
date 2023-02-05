@@ -55,14 +55,35 @@ namespace MCE_API_SERVER.Views
 
         private void Btn_StartStop_Clicked(object sender, EventArgs e)
         {
-            if (Server.Running)
-                Server.Stop();
-            else
-                Server.Start();
+            bool succeeded = true;
 
-            Button b = (Button)sender;
-            b.Text = Server.Running ? "Stop" : "Start";
-            b.BackgroundColor = Server.Running ? Color.Red : Color.Green;
+            try {
+                if (Server.Running)
+                    Server.Stop();
+                else
+                    succeeded = Server.Start();
+
+                if (succeeded) {
+                    Button b = (Button)sender;
+                    b.Text = Server.Running ? "Stop" : "Start";
+                    b.BackgroundColor = Server.Running ? Color.Red : Color.Green;
+                }
+                else {
+                    AskDownloadResourcePack();
+                }
+            } catch (Exception ex) {
+                Log.Error("Failed to start/stop server");
+                Log.Exception(ex);
+            }
+        }
+
+        private async Task AskDownloadResourcePack()
+        {
+            bool download = await DisplayAlert("Resource pack wan't found", $"File {Util.SavePath_Server}resourcepacks/vanilla.zip doesn't exist. Download it, rename to vanilla.zip",
+                    "Download", "Cancel");
+            if (download) {
+                Util.OpenBrowser(new Uri("https://web.archive.org/web/20210624200250/https://cdn.mceserv.net/availableresourcepack/resourcepacks/dba38e59-091a-4826-b76a-a08d7de5a9e2-1301b0c257a311678123b9e7325d0d6c61db3c35"));
+            }
         }
 
         private void Btn_Clear_Clicked(object sender, EventArgs e)

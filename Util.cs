@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
+using Xamarin.Essentials;
 
 namespace MCE_API_SERVER
 {
@@ -172,6 +174,14 @@ namespace MCE_API_SERVER
             foreach (byte b in ba)
                 hex.AppendFormat("{0:x2}", b);
             return hex.ToString();
+        }
+
+        public static async Task OpenBrowser(Uri uri)
+        {
+            try {
+                await Browser.OpenAsync(uri, BrowserLaunchMode.SystemPreferred);
+            }
+            catch { }
         }
 
 

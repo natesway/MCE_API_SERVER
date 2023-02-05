@@ -7,6 +7,7 @@
 
   <ItemGroup>
     <None Remove="Data\apiconfig.json" />
+    <None Remove="Data\buildplates.zip" />
     <None Remove="Data\challenges.zip" />
     <None Remove="Data\efficiency_categories.zip" />
     <None Remove="Data\encounterLocations.json" />
@@ -23,11 +24,11 @@
     <None Remove="Data\settings.json" />
     <None Remove="Data\shopItemDictionary.json" />
     <None Remove="Data\tappable.zip" />
-    <None Remove="Data\vanilla.zip" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Data\apiconfig.json" />
+    <EmbeddedResource Include="Data\buildplates.zip" />
     <EmbeddedResource Include="Data\challenges.zip" />
     <EmbeddedResource Include="Data\efficiency_categories.zip" />
     <EmbeddedResource Include="Data\encounterLocations.json" />
@@ -44,7 +45,6 @@
     <EmbeddedResource Include="Data\settings.json" />
     <EmbeddedResource Include="Data\shopItemDictionary.json" />
     <EmbeddedResource Include="Data\tappable.zip" />
-    <EmbeddedResource Include="Data\vanilla.zip" />
   </ItemGroup>
 
   <ItemGroup>

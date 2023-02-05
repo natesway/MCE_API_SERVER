@@ -112,6 +112,13 @@ namespace MCE_API_SERVER
                 ZipFile.ExtractToDirectory(Util.SavePath_Server + "tappable.zip", Util.SavePath_Server);
                 File.Delete(Util.SavePath_Server + "tappable.zip");
             }
+            // buildplates
+            if (!Directory.Exists(Util.SavePath_Server + "buildplates")) {
+                Util.LoadEmbededFile("buildplates.zip", out byte[] items);
+                Util.SaveServerFile("buildplates.zip", items);
+                ZipFile.ExtractToDirectory(Util.SavePath_Server + "buildplates.zip", Util.SavePath_Server);
+                File.Delete(Util.SavePath_Server + "buildplates.zip");
+            }
             // config
             if (!Directory.Exists(Util.SavePath_Server + "config"))
                 Directory.CreateDirectory(Util.SavePath_Server + "config");
@@ -154,8 +161,14 @@ namespace MCE_API_SERVER
             }
         }
 
-        public static void Start()
+        public static bool Start()
         {
+            if (!Util.ServerFileExists("resourcepacks/vanilla.zip")) {
+                if (!Directory.Exists(Util.SavePath_Server + "resourcepacks"))
+                    Directory.CreateDirectory(Util.SavePath_Server + "resourcepacks");
+                return false;
+            }
+
             if (!initialized)
                 Init();
 
@@ -166,6 +179,7 @@ namespace MCE_API_SERVER
             Running = true;
             serverThread.Start();
             Log.Information("Server started");
+            return true;
         }
 
         public static void Stop()
