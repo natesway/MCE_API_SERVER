@@ -223,6 +223,9 @@ namespace MCE_API_SERVER
 
         public static T ParseJsonFile<T>(string playerId, string fileNameWithoutJsonExtension) where T : new()
         {
+            // idk why it has this
+            playerId = playerId.Replace("Genoa", "");
+
             string filepath = $"players/{playerId}/{fileNameWithoutJsonExtension}.json";
 
             byte[] data = new byte[0];
@@ -245,6 +248,9 @@ namespace MCE_API_SERVER
 
         private static bool SetupJsonFile<T>(string playerId, string filepath) where T : new()
         {
+            // idk why it has this
+            playerId = playerId.Replace("Genoa", "");
+
             try {
                 Log.Information($"[{playerId}]: Creating default json with Type: {typeof(T)}.");
                 T obj = new T(); // TODO: Implement Default Values for each player property/json we store for them
@@ -274,6 +280,9 @@ namespace MCE_API_SERVER
 
         public static bool WriteJsonFile<T>(string playerId, T objToWrite, string fileNameWithoutJsonExtension)
         {
+            // idk why it has this
+            playerId = playerId.Replace("Genoa", "");
+
             try {
                 string filepath =  $"players/{playerId}/{fileNameWithoutJsonExtension}.json"; // Path should exist, as you cant really write to the file before reading it first
 
