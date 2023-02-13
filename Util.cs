@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -12,13 +13,19 @@ namespace MCE_API_SERVER
 {
     public static class Util
     {
-        public static string SavePath = "/storage/emulated/0/Android/data/com.CuRsEd_GaMeS.mce_api_server/";
-        public static string SavePath_Server = SavePath + "server/";//Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + "/";
+        public static string SavePath;
+        public static string SavePath_Server;
 
-        static Util()
+        private static bool initialized = false;
+        public static void Init()
         {
+            SavePath += "/";
+            if (!Directory.Exists(SavePath))
+                Directory.CreateDirectory(SavePath);
+            SavePath_Server = SavePath + "server/";
             if (!Directory.Exists(SavePath_Server))
                 Directory.CreateDirectory(SavePath_Server);
+            initialized = true;
         }
 
         public static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
@@ -129,6 +136,9 @@ namespace MCE_API_SERVER
         }
         public static byte[] LoadSavedFile(string name)
         {
+            if (!initialized)
+                Init();
+
             if (!System.IO.File.Exists(SavePath + name))
                 return null;
             else
@@ -138,10 +148,20 @@ namespace MCE_API_SERVER
         public static void SaveFile(string name, string data)
             => SaveFile(name, Encoding.UTF8.GetBytes(data));
         public static void SaveFile(string name, byte[] data)
-            => System.IO.File.WriteAllBytes(SavePath + name, data);
+        {
+            if (!initialized)
+                Init();
+            
+            System.IO.File.WriteAllBytes(SavePath + name, data);
+        }
 
         public static bool FileExists(string name)
-            => System.IO.File.Exists(SavePath + name);
+        {
+            if (!initialized)
+                Init();
+
+            return System.IO.File.Exists(SavePath + name);
+        }
 
         // server
         public static string LoadSavedServerFileString(string name)
@@ -154,6 +174,9 @@ namespace MCE_API_SERVER
         }
         public static byte[] LoadSavedServerFile(string name)
         {
+            if (!initialized)
+                Init();
+
             if (!System.IO.File.Exists(SavePath_Server + name))
                 return null;
             else
@@ -163,10 +186,20 @@ namespace MCE_API_SERVER
         public static void SaveServerFile(string name, string data)
             => SaveServerFile(name, Encoding.UTF8.GetBytes(data));
         public static void SaveServerFile(string name, byte[] data)
-            => System.IO.File.WriteAllBytes(SavePath_Server + name, data);
+        {
+            if (!initialized)
+                Init();
+
+            System.IO.File.WriteAllBytes(SavePath_Server + name, data);
+        }
 
         public static bool ServerFileExists(string name)
-            => System.IO.File.Exists(SavePath_Server + name);
+        {
+            if (!initialized)
+                Init();
+
+            return System.IO.File.Exists(SavePath_Server + name);
+        }
 
         public static string ByteArrayToHexString(byte[] ba)
         {

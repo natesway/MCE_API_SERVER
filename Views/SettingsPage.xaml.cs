@@ -54,6 +54,8 @@ namespace MCE_API_SERVER.Views
 
         protected override void OnAppearing()
         {
+            Settings.Init();
+
             // make sure settings are up-to date
             // updae checks
             LogRequestsCheck.IsChecked = Settings.LogRequests;

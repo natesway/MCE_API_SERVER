@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 
 namespace MCE_API_SERVER.Utils
@@ -14,34 +15,33 @@ namespace MCE_API_SERVER.Utils
 	{
 		public static bool DownloadTile(int pos1, int pos2, string basePath)
 		{
-			return false;
-			//WebClient webClient = new WebClient();
-
+			HttpClient client = new HttpClient();
 			try {
 				Directory.CreateDirectory(Path.Combine(basePath, pos1.ToString()));
-				//string downloadUrl = "https://cdn.mceserv.net/tile/16/" + pos1 + "/" + pos1 + "_" + pos2 + "_16.png";// Disabled because the server is down 
-				string downloadUrl = StateSingleton.config.tileServerUrl /*+ "/styles/mc-earth/16/"*/ + pos1 + "/" + pos2 + ".png";
+				string downloadUrl = StateSingleton.config.tileServerUrl + pos1 + "/" + pos2 + ".png";
 				string savePath = Path.Combine(basePath, pos1.ToString(), $"{pos1}_{pos2}_16.png");
-				/*webClient.DownloadFile(downloadUrl, Path.Combine(basePath, pos1.ToString(), $"{pos1}_{pos2}_16.png"));
-				webClient.Dispose();*/
-				using (HttpClient client = new HttpClient()) {
-					HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
-					request.Headers.UserAgent.Clear();
-					request.Headers.UserAgent.Add(new System.Net.Http.Headers.ProductInfoHeaderValue("MCE_API_SERVER", "1.0"));
-					//request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36");
-					HttpResponseMessage response = client.SendAsync(request).Result;
 
-					File.WriteAllBytes(savePath, response.Content.ReadAsByteArrayAsync().Result);
+				HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
+				req.Headers.UserAgent.Clear();
+				req.Headers.UserAgent.Add(new ProductInfoHeaderValue("Mce_Api_Server", "1.0"));
+				req.Headers.Remove("Cache-Control");
+				req.Headers.Remove("Pragma");
 
-					response.Dispose();
-				}
+				client = new HttpClient();
+				HttpResponseMessage resp = client.SendAsync(req).Result;
+
+				if (resp.StatusCode != HttpStatusCode.OK) {
+					Log.Error($"Failed to download tile, StatusCode: {resp.StatusCode}");
+					return false;
+                }
+
+				File.WriteAllBytes(savePath, resp.Content.ReadAsByteArrayAsync().Result);
 
 				return true;
 			}
 			catch (Exception ex) {
+				client?.Dispose();
 				Log.Exception(ex);
-				//TODO: error 502 check.
-				//webClient.Dispose();
 				return false;
 			}
 		}

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
 using Xamarin.Forms;
@@ -53,30 +54,56 @@ namespace MCE_API_SERVER.Views
             });
         }
 
+        bool notifAllowBackgroundDone;
+
         private void Btn_StartStop_Clicked(object sender, EventArgs e)
         {
-            bool succeeded = true;
+            Thread t = new Thread(() =>
+            {
+                try {
+                    // needs to run on seperate thread, otherwise hangs and crasches
+                    if (!Util.FileExists("askedBackgroudLimit")) {
+                        notifAllowBackgroundDone = false;
+                        // needs to run on ui thread
+                        Device.BeginInvokeOnMainThread(() => AskTurnOnBackgroundUnrestricted());
+                        while (notifAllowBackgroundDone == false) Thread.Sleep(1);
+                        AppInfo.ShowSettingsUI();
+                        Util.SaveFile("askedBackgroudLimit", new byte[0]);
+                    }
 
-            try {
-                if (Server.Running)
-                    Server.Stop();
-                else
-                    succeeded = Server.Start();
+                    // this can be run on UI thread
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        bool succeeded = true;
+                        if (Server.Running)
+                            Server.Stop();
+                        else
+                            succeeded = Server.Start();
 
-                if (succeeded) {
-                    Button b = (Button)sender;
-                    b.Text = Server.Running ? "Stop" : "Start";
-                    b.BackgroundColor = Server.Running ? Color.Red : Color.Green;
+                        if (succeeded) {
+                            Button b = (Button)sender;
+                            b.Text = Server.Running ? "Stop" : "Start";
+                            b.BackgroundColor = Server.Running ? Color.Red : Color.Green;
+                        }
+                        else {
+                            AskDownloadResourcePack();
+                        }
+                    });
                 }
-                else {
-                    AskDownloadResourcePack();
+                catch (Exception ex) {
+                    Log.Error("Failed to start/stop server");
+                    Log.Exception(ex);
                 }
-            } catch (Exception ex) {
-                Log.Error("Failed to start/stop server");
-                Log.Exception(ex);
-            }
+            });
+            t.Start();
         }
 
+        private async Task AskTurnOnBackgroundUnrestricted()
+        {
+            await DisplayAlert("Allow background activity", "App info will be open, go to \"Battery usage\", run on \"Allow background activity\"", "Ok");
+            notifAllowBackgroundDone = true;
+        }
+        
         private async Task AskDownloadResourcePack()
         {
             bool download = await DisplayAlert("Resource pack wan't found", $"File {Util.SavePath_Server}resourcepacks/vanilla.zip doesn't exist. Download it, rename to vanilla.zip",

@@ -13,6 +13,7 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 
 namespace MCE_API_SERVER

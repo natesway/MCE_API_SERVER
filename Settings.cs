@@ -20,7 +20,7 @@ namespace MCE_API_SERVER
         public static bool LogMesType { get => save.LogMesType; set => save.LogMesType = value; }
         public static int MaxMessagesInConsole { get => save.MaxMessagesInConsole; set => save.MaxMessagesInConsole = value; }
 
-        static Settings()
+        public static void Init()
         {
             if (!Load()) { // failed to load
                 save = new SettingsSave();

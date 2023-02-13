@@ -1,5 +1,6 @@
 ﻿using MCE_API_SERVER.Views;
 using System;
+using Xamarin.Essentials;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -7,7 +8,6 @@ namespace MCE_API_SERVER
 {
     public partial class App : Application
     {
-
         public App()
         {
             InitializeComponent();
@@ -17,6 +17,7 @@ namespace MCE_API_SERVER
 
         protected override void OnStart()
         {
+            Settings.Init();
             Log.Init(true);
             Log.Information("Started app");
         }

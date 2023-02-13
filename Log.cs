@@ -23,8 +23,17 @@ namespace MCE_API_SERVER
 
                 DateTime time = DateTime.Now;
 
-                File.Move(Util.SavePath + saveFileName, Util.SavePath + saveHistoryName +
-                    $"log_{time.Day}.{time.Month}.{time.Year}_{time.Hour}:{time.Minute}:{time.Second}.txt");
+                try {
+                    FileStream stream = File.Create(Util.SavePath + saveHistoryName +
+                        $"log_{time.Day}_{time.Month}_{time.Year} {time.Hour}_{time.Minute}_{time.Second}.txt");
+                    byte[] logBytes = File.ReadAllBytes(Util.SavePath + saveFileName);
+                    stream.Write(logBytes, 0, logBytes.Length);
+                    stream.Flush();
+                    stream.Close();
+                } catch (Exception ex) {
+                    Log.Error("Failed to move log file");
+                    Log.Exception(ex);
+                }
             }
 
             if (saveStream != null && saveStream.CanWrite)
