@@ -20,14 +20,13 @@ namespace MCE_API_SERVER
 {
     public static class Server
     {
-        public const string AppVersion = "v1.0";
+        public const string AppVersion = "1.0";
 
         public static Thread serverThread;
 
         public static bool Running { get; private set; }
 
         public static TcpListener listener;
-        public const int PORT = 5001;
 
         private static bool initialized = false;
 
@@ -173,13 +172,13 @@ namespace MCE_API_SERVER
             if (!initialized)
                 Init();
 
-            listener = new TcpListener(IPAddress.Loopback, PORT);
+            listener = new TcpListener(IPAddress.Loopback, Settings.ServerPort);
             listener.Start();
 
             serverThread = new Thread(Run);
             Running = true;
             serverThread.Start();
-            Log.Information("Server started");
+            Log.Information($"Server started at port {Settings.ServerPort}");
             return true;
         }
 
@@ -375,7 +374,9 @@ namespace MCE_API_SERVER
                     client.Dispose();
                 }
                 catch (Exception ex) {
-                    Log.Exception(ex);
+                    if (ex is SocketException se && se.SocketErrorCode == SocketError.Interrupted) { } // don't log this exception, happens when server is stopped
+                    else
+                        Log.Exception(ex);
                 }
             }
             Running = false;

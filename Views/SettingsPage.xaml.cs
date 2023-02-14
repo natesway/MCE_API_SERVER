@@ -50,6 +50,22 @@ namespace MCE_API_SERVER.Views
                 Settings.MaxMessagesInConsole = numb;
                 MaxMesInput.Text = numb.ToString();
             };
+
+            ServerPort.Completed += (object sender, EventArgs e) =>
+            {
+                string text = "";
+                for (int i = 0; i < ServerPort.Text.Length; i++)
+                    if (char.IsDigit(ServerPort.Text[i]))
+                        text += ServerPort.Text[i];
+
+                ushort numb = 100;
+                ushort.TryParse(text, out numb);
+                if (numb < 1)
+                    numb = 1;
+
+                Settings.ServerPort = numb;
+                ServerPort.Text = numb.ToString();
+            };
         }
 
         protected override void OnAppearing()
@@ -57,7 +73,7 @@ namespace MCE_API_SERVER.Views
             Settings.Init();
 
             // make sure settings are up-to date
-            // updae checks
+            // update checks
             LogRequestsCheck.IsChecked = Settings.LogRequests;
             LogMesTimeCheck.IsChecked = Settings.LogMesTime;
             LogMesTypeCheck.IsChecked = Settings.LogMesType;
@@ -107,6 +123,8 @@ namespace MCE_API_SERVER.Views
                 l.VerticalOptions = LayoutOptions.Center;
                 SelectedFilterContainer.Children.Add(l);
             }
+
+            ServerPort.Text = Settings.ServerPort.ToString();
         }
 
         private void Btn_MesFilter_Clicked(object sender, EventArgs e)

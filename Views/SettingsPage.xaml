@@ -30,8 +30,13 @@
                     </Grid>
                     <Label Text="Selected:" HorizontalOptions="Start"/>
                     <StackLayout x:Name="SelectedFilterContainer" Margin="15, 0, 0, 0">
-                        
+
                     </StackLayout>
+                    <Label Text="Server" VerticalOptions="Start" HorizontalOptions="CenterAndExpand" FontSize="Large"/>
+                    <Grid>
+                        <Label Text="Server Port" VerticalOptions="Center" HorizontalOptions="Start"/>
+                        <Entry x:Name="ServerPort" Keyboard="Numeric" Placeholder="Number" MaxLength="5" HorizontalOptions="End"/>
+                    </Grid>
                 </StackLayout>
             </ScrollView>
         </StackLayout>

@@ -81,6 +81,9 @@
     <FlyoutItem Title="Server" Icon="icon_server.png">
         <ShellContent Route="ServerPage" ContentTemplate="{DataTemplate local:ServerPage}" />
     </FlyoutItem>
+    <FlyoutItem Title="Console" Icon="icon_console.png">
+        <ShellContent Route="ConsolePage" ContentTemplate="{DataTemplate local:ConsolePage}" />
+    </FlyoutItem>
     <FlyoutItem Title="Settings" Icon="icon_settings.png">
         <ShellContent Route="SettingsPage" ContentTemplate="{DataTemplate local:SettingsPage}" />
     </FlyoutItem>

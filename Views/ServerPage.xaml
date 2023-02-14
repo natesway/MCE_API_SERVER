@@ -3,13 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MCE_API_SERVER.Views.ServerPage">
     <ContentPage.Content>
-        <StackLayout BackgroundColor="Black">
+        <StackLayout>
             <Button Text="Start" Clicked="Btn_StartStop_Clicked" BackgroundColor="Green"/>
-            <ScrollView Grid.Column="8" Grid.Row="8" HorizontalScrollBarVisibility="Always" VerticalOptions="StartAndExpand">
-                <StackLayout x:Name="Console">
-                </StackLayout>
-            </ScrollView>
-            <Button Text="Clear" VerticalOptions="End" Clicked="Btn_Clear_Clicked"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

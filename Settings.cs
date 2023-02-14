@@ -20,8 +20,14 @@ namespace MCE_API_SERVER
         public static bool LogMesType { get => save.LogMesType; set => save.LogMesType = value; }
         public static int MaxMessagesInConsole { get => save.MaxMessagesInConsole; set => save.MaxMessagesInConsole = value; }
 
+        public static ushort ServerPort { get => save.ServerPort; set => save.ServerPort = value; }
+
+        private static bool initialized = false;
         public static void Init()
         {
+            if (initialized)
+                return;
+
             if (!Load()) { // failed to load
                 save = new SettingsSave();
 
@@ -34,11 +40,14 @@ namespace MCE_API_SERVER
 
                 MaxMessagesInConsole = 100;
 
+                ServerPort = 5001;
+
                 Log.Warning("Failed to load server setings, created default");
                 Save();
             }
             else
                 Log.Information("Loaded settings");
+            initialized = true;
         }
 
         public static void Save()
@@ -68,6 +77,7 @@ namespace MCE_API_SERVER
 
         private class SettingsSave
         {
+            // Console
             public bool[] MesLogFilter { get; set; } = new bool[5];
 
             public bool LogRequests { get; set; }
@@ -75,6 +85,9 @@ namespace MCE_API_SERVER
             public bool LogMesType { get; set; }
 
             public int MaxMessagesInConsole { get; set; }
+
+            // Server
+            public ushort ServerPort { get; set; }
         }
     }
 }
