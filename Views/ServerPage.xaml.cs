@@ -1,7 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using MCE_API_SERVER.Github;
+using System;
+using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Xamarin.Essentials;
@@ -13,9 +13,15 @@ namespace MCE_API_SERVER.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ServerPage : ContentPage
     {
+        private static bool checkedApkAvailable = false;
+
         public ServerPage()
         {
             InitializeComponent();
+            if (!checkedApkAvailable) {
+                CheckDownloadAvailable();
+                checkedApkAvailable = true;
+            }
         }
 
         bool notifAllowBackgroundDone;
@@ -53,7 +59,8 @@ namespace MCE_API_SERVER.Views
                             else {
                                 AskDownloadResourcePack();
                             }
-                        } catch (Exception ex) {
+                        }
+                        catch (Exception ex) {
                             Log.Error("Failed to start/stop server");
                             Log.Exception(ex);
                         }
@@ -72,14 +79,117 @@ namespace MCE_API_SERVER.Views
             await DisplayAlert("Allow background activity", "App info will be open, go to \"Battery usage\", run on \"Allow background activity\"", "Ok");
             notifAllowBackgroundDone = true;
         }
-        
+
         private async Task AskDownloadResourcePack()
         {
-            bool download = await DisplayAlert("Resource pack wan't found", $"File {Util.SavePath_Server}resourcepacks/vanilla.zip doesn't exist. Download it, rename to vanilla.zip",
-                    "Download", "Cancel");
-            if (download) {
-                Util.OpenBrowser(new Uri("https://web.archive.org/web/20210624200250/https://cdn.mceserv.net/availableresourcepack/resourcepacks/dba38e59-091a-4826-b76a-a08d7de5a9e2-1301b0c257a311678123b9e7325d0d6c61db3c35"));
+            if (await DisplayAlert(
+                "Resource pack wan't found", $"File {Util.SavePath_Server}resourcepacks/vanilla.zip doesn't exist. Download it, rename to vanilla.zip",
+                    "Download", "Cancel"))
+                Util.OpenBrowser(new Uri(
+                    "https://web.archive.org/web/20210624200250/https://cdn.mceserv.net/availableresourcepack/resourcepacks/dba38e59-091a-4826-b76a-a08d7de5a9e2-1301b0c257a311678123b9e7325d0d6c61db3c35"));
+        }
+
+        private void CheckDownloadAvailable()
+        {
+            try {
+                using (HttpClient client = new HttpClient()) {
+                    HttpResponseMessage resp = client.GetAsync("https://api.github.com/repos/SuperMatejCZ/MCE_API_SERVER/releases/latest").Result;
+                    if (resp.StatusCode != HttpStatusCode.OK) {
+                        Log.Error($"Got not OK response when checking release: {resp.StatusCode}");
+                        return;
+                    }
+                    ReleaseLatest release = Utf8Json.JsonSerializer.Deserialize<ReleaseLatest>(resp.Content.ReadAsStringAsync().Result);
+                    resp.Dispose();
+
+                    if (!release.tag_name.Contains('.')) {
+                        Log.Error($"Release not in correct format ({release.tag_name}), this might be developer's fault");
+                        return;
+                    }
+
+                    // prelease or alpha or beta (don't download automatically)
+                    if (release.tag_name.Contains("pre") || release.tag_name.Contains("a") || release.tag_name.Contains("b")) {
+                        Log.Information("No new versions detected");
+                        return;
+                    }
+
+                    string[] tagSplit = release.tag_name.Split('.');
+                    int majorVersion, minorVersion;
+                    if (!int.TryParse(tagSplit[0], out majorVersion) || !int.TryParse(tagSplit[1], out minorVersion)) {
+                        Log.Error($"Release tag not in correct format ({release.tag_name}), this might be developer's fault");
+                        return;
+                    }
+
+                    // outdated version
+                    if (majorVersion > Server.AppVersion_Major || (majorVersion == Server.AppVersion_Major && minorVersion > Server.AppVersion_Minor)) {
+                        Log.Information($"New version of app available ({release.tag_name})");
+
+                        // make sure release is valid
+                        if (release.assets == null || release.assets.Length < 1) {
+                            Log.Error("Release has no assets");
+                            return;
+                        }
+
+                        Thread t = new Thread(() =>
+                        {
+                            try {
+                                DownloadAPK(release);
+                            }
+                            catch (Exception ex) {
+                                Log.Error("Failed to download update");
+                                Log.Exception(ex);
+                            }
+                        });
+                        t.Start();
+                    }
+                    else
+                        Log.Information("No new versions detected");
+                }
             }
+            catch (Exception ex) {
+                Log.Error("Couldn't get release info");
+                Log.Exception(ex);
+            }
+        }
+
+        int askedDownloadAPKStatus;
+        private void DownloadAPK(ReleaseLatest release)
+        {
+            askedDownloadAPKStatus = 0;
+            // needs to run on ui thread
+            Device.BeginInvokeOnMainThread(() => AskDownloadApk(release.tag_name));
+            while (askedDownloadAPKStatus == 0) Thread.Sleep(1);
+
+            string downloadPath = Util.SavePath + "update.apk";
+
+            // user wants to update
+            if (askedDownloadAPKStatus == 2) {
+                DownloadPage.lastDownloadStatus = 0;
+                Device.BeginInvokeOnMainThread(() =>
+                    Navigation.PushAsync(new DownloadPage(release.assets[0].browser_download_url, downloadPath, release.assets[0].name, false))
+                );
+
+                while (DownloadPage.lastDownloadStatus == 0) Thread.Sleep(1);
+
+                if (DownloadPage.lastDownloadStatus != 2)
+                    Device.BeginInvokeOnMainThread(() => DisplayAlert("Error", "Failed to donwload apk or download was canceled", "Ok"));
+                else {
+                    Log.Information("Downloaded update");
+                    // assinged by current platform (only android for now, I don't think iOS allows this)
+                    //Util.InstallUpdate(downloadPath);
+                    Device.BeginInvokeOnMainThread(() => PromptInstall(downloadPath));
+                }
+            }
+        }
+
+        private async Task PromptInstall(string downloadPath)
+        {
+            if (await DisplayAlert("Install", $"Please navigate to {downloadPath} and install the update", "Copy path", "Ok"))
+                Clipboard.SetTextAsync(downloadPath);
+        }
+
+        private async Task AskDownloadApk(string newVersion)
+        {
+            askedDownloadAPKStatus = await DisplayAlert("Update app", $"New version was detected ({newVersion})", "Download", "Cancel") ? 2 : 1;
         }
     }
 }

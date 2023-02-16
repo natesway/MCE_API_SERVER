@@ -13,14 +13,14 @@ using System.Net.Sockets;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using Xamarin.Essentials;
-using Xamarin.Forms;
 
 namespace MCE_API_SERVER
 {
     public static class Server
     {
-        public const string AppVersion = "1.0";
+        public const int AppVersion_Major = 1;
+        public const int AppVersion_Minor = 1;
+        public static readonly string AppVersion = AppVersion_Major + "." + AppVersion_Minor;
 
         public static Thread serverThread;
 
@@ -64,7 +64,8 @@ namespace MCE_API_SERVER
             try {
                 ExtractFiles();
                 Log.Debug("Extracted files");
-            } catch (Exception ex) {
+            }
+            catch (Exception ex) {
                 Log.Error($"Couldn't extract files, deleting \"{Util.SavePath_Server}\" might help");
                 Log.Exception(ex);
             }
@@ -284,7 +285,8 @@ namespace MCE_API_SERVER
                             if (handles[i].Urls[j] == sub) {
                                 resp = handles[i].Function(new ServerHandleArgs(fullSub, data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type));
                                 goto response;
-                            } else { // invalid or url values
+                            }
+                            else { // invalid or url values
                                 string[] recSubs = sub.Split('/'); // received
                                 string[] compSubs = handles[i].Urls[j].Split('/'); // comparing
                                 if (recSubs.Length != compSubs.Length || !handles[i].Urls[j].Contains('{'))
@@ -313,7 +315,7 @@ namespace MCE_API_SERVER
                                                     // comp is }, increase by one
                                                     compIndex++;
 
-                                                    while(y < recSubs[x].Length && (compIndex >= compSubs[x].Length || recSubs[x][y] != compSubs[x][compIndex])) {
+                                                    while (y < recSubs[x].Length && (compIndex >= compSubs[x].Length || recSubs[x][y] != compSubs[x][compIndex])) {
                                                         currentArgValue += recSubs[x][y];
                                                         y++;
                                                     }
@@ -329,7 +331,8 @@ namespace MCE_API_SERVER
                                                     urlArgs.Add(currentArgName, currentArgValue);
                                                     currentArgName = "";
                                                     currentArgValue = "";
-                                                } else {
+                                                }
+                                                else {
                                                     fail = true;
                                                     break;
                                                 }

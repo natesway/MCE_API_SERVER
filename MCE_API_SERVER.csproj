@@ -11,6 +11,7 @@
     <None Remove="Data\challenges.zip" />
     <None Remove="Data\efficiency_categories.zip" />
     <None Remove="Data\encounterLocations.json" />
+    <None Remove="Data\file_paths.xml" />
     <None Remove="Data\FilterColorImages\Debug.PNG" />
     <None Remove="Data\FilterColorImages\Error.PNG" />
     <None Remove="Data\FilterColorImages\Information.PNG" />
@@ -24,6 +25,8 @@
     <None Remove="Data\settings.json" />
     <None Remove="Data\shopItemDictionary.json" />
     <None Remove="Data\tappable.zip" />
+    <None Remove="file_paths.xml" />
+    <None Remove="README.md" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,6 +59,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="Views\ServerPage.xaml.cs">
       <DependentUpon>ServerPage.xaml</DependentUpon>
     </Compile>
@@ -63,6 +70,9 @@
 
   <ItemGroup>
     <EmbeddedResource Update="Views\ConsolePage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Views\DownloadPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Views\MesFilterPage.xaml">

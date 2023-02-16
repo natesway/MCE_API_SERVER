@@ -1,8 +1,5 @@
-﻿using MCE_API_SERVER.Views;
-using System;
-using Xamarin.Essentials;
+﻿using System;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace MCE_API_SERVER
 {
@@ -17,6 +14,13 @@ namespace MCE_API_SERVER
 
         protected override void OnStart()
         {
+            AppDomain.CurrentDomain.UnhandledException += (object sender, UnhandledExceptionEventArgs e) =>
+            {
+                Log.Error("Unhandled Exception was thrown");
+                if (e.ExceptionObject != null)
+                    Log.Exception(e.ExceptionObject as Exception);
+            };
+
             Settings.Init();
             Log.Init(true);
             Log.Information("Started app");

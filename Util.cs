@@ -1,8 +1,5 @@
-﻿using MCE_API_SERVER.Models.Player;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -15,20 +12,23 @@ namespace MCE_API_SERVER
     {
         public static string SavePath;
         public static string SavePath_Server;
+        private static bool initialized;
 
-        private static bool initialized = false;
-        public static void Init()
+        private static void Init()
         {
-            SavePath += "/";
+            SavePath = GetSavePath() + "/";
             if (!Directory.Exists(SavePath))
                 Directory.CreateDirectory(SavePath);
             SavePath_Server = SavePath + "server/";
             if (!Directory.Exists(SavePath_Server))
                 Directory.CreateDirectory(SavePath_Server);
+
             initialized = true;
         }
 
         public static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
+        //public static Action<string> InstallUpdate;
+        public static Func<string> GetSavePath;
 
         public static byte[] Ok()
         {
@@ -151,7 +151,7 @@ namespace MCE_API_SERVER
         {
             if (!initialized)
                 Init();
-            
+
             System.IO.File.WriteAllBytes(SavePath + name, data);
         }
 
@@ -240,7 +240,8 @@ namespace MCE_API_SERVER
             T parsedobj;
             try {
                 parsedobj = JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(invjson));
-            } catch {
+            }
+            catch {
                 parsedobj = Utf8Json.JsonSerializer.Deserialize<T>(Encoding.UTF8.GetString(invjson));
             }
             return parsedobj;
@@ -266,7 +267,8 @@ namespace MCE_API_SERVER
 
                         SaveServerFile(filepath, Utf8Json.JsonSerializer.Serialize(obj));
                         return true;
-                    } catch (Exception e) {
+                    }
+                    catch (Exception e) {
                         Log.Error($"[{playerId}]: Creating default json failed! Type: {typeof(T)}");
                         Log.Exception(e);
                         return false;
@@ -284,7 +286,7 @@ namespace MCE_API_SERVER
             playerId = playerId.Replace("Genoa", "");
 
             try {
-                string filepath =  $"players/{playerId}/{fileNameWithoutJsonExtension}.json"; // Path should exist, as you cant really write to the file before reading it first
+                string filepath = $"players/{playerId}/{fileNameWithoutJsonExtension}.json"; // Path should exist, as you cant really write to the file before reading it first
 
                 try {
                     string s = JsonConvert.SerializeObject(objToWrite);

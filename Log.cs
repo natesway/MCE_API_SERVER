@@ -30,7 +30,8 @@ namespace MCE_API_SERVER
                     stream.Write(logBytes, 0, logBytes.Length);
                     stream.Flush();
                     stream.Close();
-                } catch (Exception ex) {
+                }
+                catch (Exception ex) {
                     Log.Error("Failed to move log file");
                     Log.Exception(ex);
                 }
@@ -40,6 +41,7 @@ namespace MCE_API_SERVER
                 saveStream.Close();
 
             saveStream = new FileStream(Util.SavePath + saveFileName, FileMode.OpenOrCreate, FileAccess.Write, FileShare.Read);
+            Settings.Init();
         }
 
         public static void Dispose()
@@ -49,16 +51,17 @@ namespace MCE_API_SERVER
             saveStream = null;
         }
 
-        public static void Debug(string message, bool forceLog = false) {
+        public static void Debug(string message, bool forceLog = false)
+        {
             LogMes(new LogMessage(message, LogType.Debug), 0, forceLog);
         }
         public static void Information(string message, bool forceLog = false)
         {
-            LogMes(new LogMessage(message, LogType.Information), 1, forceLog); 
+            LogMes(new LogMessage(message, LogType.Information), 1, forceLog);
         }
         public static void Warning(string message, bool forceLog = false)
         {
-            LogMes(new LogMessage(message, LogType.Warning), 2, forceLog); 
+            LogMes(new LogMessage(message, LogType.Warning), 2, forceLog);
         }
         public static void Error(string message, bool forceLog = false)
         {
@@ -69,19 +72,23 @@ namespace MCE_API_SERVER
             LogMes(new LogMessage(ex.ToString(), LogType.Exception), 4, forceLog);
         }
 
+        private static object lockObj = new object();
         private static void LogMes(LogMessage message, int filterIndex, bool forceLog)
         {
-            if (saveStream == null)
-                Init(false);
+            // make thread safe
+            lock (lockObj) {
+                if (saveStream == null)
+                    Init(false);
 
-            string messageText = $"[{Enum.GetName(typeof(LogType), message.Type)}] [{message.Time.Day}.{message.Time.Month}.{message.Time.Year} " +
-                $"{message.Time.Hour}:{message.Time.Minute}:{message.Time.Second}] {message.Content}\n";
-            byte[] bytes = Encoding.UTF8.GetBytes(messageText);
-            saveStream.Write(bytes, 0, bytes.Length);
-            saveStream.Flush();
+                string messageText = $"[{Enum.GetName(typeof(LogType), message.Type)}] [{message.Time.Day}.{message.Time.Month}.{message.Time.Year} " +
+                    $"{message.Time.Hour}:{message.Time.Minute}:{message.Time.Second}] {message.Content}\n";
+                byte[] bytes = Encoding.UTF8.GetBytes(messageText);
+                saveStream.Write(bytes, 0, bytes.Length);
+                saveStream.Flush();
 
-            if (Settings.MesLogFilter[filterIndex] || forceLog)
-                ToLog.Enqueue(message);
+                if (Settings.MesLogFilter[filterIndex] || forceLog)
+                    ToLog.Enqueue(message);
+            }
         }
 
         public struct LogMessage

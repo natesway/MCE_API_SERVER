@@ -1,6 +1,5 @@
 ﻿using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 using static MCE_API_SERVER.Util;
@@ -70,7 +69,8 @@ namespace MCE_API_SERVER
             try {
                 save = JsonConvert.DeserializeObject<SettingsSave>(LoadSavedFileString(saveFileName));
                 return true;
-            } catch {
+            }
+            catch {
                 return false;
             }
         }

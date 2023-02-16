@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -12,7 +8,8 @@ namespace MCE_API_SERVER.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class SettingsPage : ContentPage
     {
-        public static SettingsPage Instance { 
+        public static SettingsPage Instance
+        {
             get {
                 if (instance == null)
                     return new SettingsPage();
