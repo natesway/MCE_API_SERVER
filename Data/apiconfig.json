@@ -1,4 +1,5 @@
 {
+	"saveVersion": "1.2",
 	"baseServerIP": "http://127.0.0.1:5001",
 	"useBaseServerIP": "True",
 	"tileServerUrl": "https://c.tile.openstreetmap.org/16/",
@@ -19,6 +20,7 @@
 	"mixTappableSpawnAmount": 5,
 	"maxTappableSpawnAmount": 20,
 	"tappableSpawnRadius": 0.001,
+	"minTappableOffset": 0.0002,
 	"multiplayerAuthKeys": {
 		"192.168.1.112": "/g1xCS33QYGC+F2s016WXaQWT8ICnzJvdqcVltNtWljrkCyjd5Ut4tvy2d/IgNga0uniZxv/t0hELdZmvx+cdA=="
 	}

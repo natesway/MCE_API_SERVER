@@ -214,7 +214,15 @@ namespace MCE_API_SERVER.Utils
                     StateSingleton.config.maxTappableSpawnAmount);
                 count -= tappables.Count;
                 for (; count > 0; count--) {
+                    createTappable:
                     LocationResponse.ActiveLocation tappable = createTappableInRadiusOfCoordinates(lat, lon);
+                    for (int i = 0; i < tappables.Count; i++) {
+                        double distance = (tappables[i].coordinate - tappable.coordinate).Lenght();
+                        if (distance < StateSingleton.config.minTappableOffset)
+                            goto createTappable; // generate new, too close to another one
+                    }
+                    // add 0-20s delay before tappable spawns, so that they don't spawn all at once
+                    tappable.spawnTime = tappable.spawnTime.AddSeconds(rng.Next(0, 60) / 3f);
                     tappables.Add(tappable);
                 }
             }

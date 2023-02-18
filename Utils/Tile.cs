@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Mapsui.Geometries;
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -13,10 +14,12 @@ namespace MCE_API_SERVER.Utils
     {
         public static bool DownloadTile(int pos1, int pos2, string basePath)
         {
+            string downloadUrl = StateSingleton.config.tileServerUrl + pos1 + "/" + pos2 + ".png";
+            bool try1 = true;
+            start:
             HttpClient client = new HttpClient();
             try {
                 Directory.CreateDirectory(Path.Combine(basePath, pos1.ToString()));
-                string downloadUrl = StateSingleton.config.tileServerUrl + pos1 + "/" + pos2 + ".png";
                 string savePath = Path.Combine(basePath, pos1.ToString(), $"{pos1}_{pos2}_16.png");
 
                 HttpRequestMessage req = new HttpRequestMessage(HttpMethod.Get, downloadUrl);
@@ -29,6 +32,11 @@ namespace MCE_API_SERVER.Utils
                 HttpResponseMessage resp = client.SendAsync(req).Result;
 
                 if (resp.StatusCode != HttpStatusCode.OK) {
+                    if (try1) {
+                        try1 = false;
+                        downloadUrl = StateSingleton.config.tileServerUrl2 + pos1 + "/" + pos2 + ".png";
+                        goto start;
+                    }
                     Log.Error($"Failed to download tile, StatusCode: {resp.StatusCode}");
                     return false;
                 }
@@ -39,6 +47,11 @@ namespace MCE_API_SERVER.Utils
             }
             catch (Exception ex) {
                 client?.Dispose();
+                if (try1) {
+                    try1 = false;
+                    downloadUrl = StateSingleton.config.tileServerUrl2 + pos1 + "/" + pos2 + ".png";
+                    goto start;
+                }
                 Log.Exception(ex);
                 return false;
             }
@@ -63,6 +76,25 @@ namespace MCE_API_SERVER.Utils
                 ytile = ((1 << 16) - 1);
 
             return $"{xtile}_{ytile}";
+        }
+
+        public static Point getTileForCoordinates(Point p)
+        {
+            //Adapted from java example. Zoom is replaced by the constant 16 because all MCE tiles are at zoom 16
+
+            int xtile = (int)Math.Floor((p.X + 180) / 360 * (1 << 16));
+            int ytile = (int)Math.Floor((1 - Math.Log(Math.Tan(toRadians(p.Y)) + 1 / Math.Cos(toRadians(p.Y))) / Math.PI) / 2 * (1 << 16));
+
+            if (xtile < 0)
+                xtile = 0;
+            if (xtile >= (1 << 16))
+                xtile = ((1 << 16) - 1);
+            if (ytile < 0)
+                ytile = 0;
+            if (ytile >= (1 << 16))
+                ytile = ((1 << 16) - 1);
+
+            return new Point(xtile, ytile);
         }
 
         //Helper

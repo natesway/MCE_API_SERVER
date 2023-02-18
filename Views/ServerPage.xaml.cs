@@ -1,5 +1,8 @@
 ﻿using MCE_API_SERVER.Github;
+using MCE_API_SERVER.Utils;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -14,6 +17,7 @@ namespace MCE_API_SERVER.Views
     public partial class ServerPage : ContentPage
     {
         private static bool checkedApkAvailable = false;
+        private static DateTime lastTileDownload;
 
         public ServerPage()
         {
@@ -24,8 +28,17 @@ namespace MCE_API_SERVER.Views
             }
         }
 
-        bool notifAllowBackgroundDone;
+        private void Btn_DownloadTiles_Clicked(object sender, EventArgs e)
+        {
+            if (lastTileDownload == null || lastTileDownload.AddMinutes(10) < DateTime.Now)
+                Navigation.PushAsync(new TileDownloadPage(DownloadTiles));
+            else {
+                TimeSpan span = lastTileDownload.AddMinutes(10) - DateTime.Now;
+                DisplayAlert("Error", $"You need to wait {span.Minutes}:{span.Seconds}", "Ok");
+            }
+        }
 
+        bool notifAllowBackgroundDone;
         private void Btn_StartStop_Clicked(object sender, EventArgs e)
         {
             Thread t = new Thread(() =>
@@ -84,7 +97,7 @@ namespace MCE_API_SERVER.Views
         {
             if (await DisplayAlert(
                 "Resource pack wan't found", $"File {Util.SavePath_Server}resourcepacks/vanilla.zip doesn't exist. Download it, rename to vanilla.zip",
-                    "Download", "Cancel"))
+                    "Open download page", "Cancel"))
                 Util.OpenBrowser(new Uri(
                     "https://web.archive.org/web/20210624200250/https://cdn.mceserv.net/availableresourcepack/resourcepacks/dba38e59-091a-4826-b76a-a08d7de5a9e2-1301b0c257a311678123b9e7325d0d6c61db3c35"));
         }
@@ -165,7 +178,7 @@ namespace MCE_API_SERVER.Views
             if (askedDownloadAPKStatus == 2) {
                 DownloadPage.lastDownloadStatus = 0;
                 Device.BeginInvokeOnMainThread(() =>
-                    Navigation.PushAsync(new DownloadPage(release.assets[0].browser_download_url, downloadPath, release.assets[0].name, false))
+                    Navigation.PushAsync(new DownloadPage(new FileToDownload(release.assets[0].browser_download_url, downloadPath, release.assets[0].name), false))
                 );
 
                 while (DownloadPage.lastDownloadStatus == 0) Thread.Sleep(1);
@@ -190,6 +203,71 @@ namespace MCE_API_SERVER.Views
         private async Task AskDownloadApk(string newVersion)
         {
             askedDownloadAPKStatus = await DisplayAlert("Update app", $"New version was detected ({newVersion})", "Download", "Cancel") ? 2 : 1;
+        }
+
+        // called from TileDownloadPage
+        private async Task DownloadTiles(Mapsui.Geometries.Point p1, Mapsui.Geometries.Point p2)
+        {
+            const double maxSizeX = 0.12d;
+            const double maxSizeY = 0.12d;
+
+            if (p1.X > p2.X) {
+                double i = p1.X;
+                p1.X = p2.X;
+                p2.X = i;
+            }
+            if (p1.Y > p2.Y) {
+                double i = p1.Y;
+                p1.Y = p2.Y;
+                p2.Y = i;
+            }
+
+            if (Math.Abs(p1.X - p2.X) > maxSizeX || Math.Abs(p1.Y - p2.Y) > maxSizeY) {
+                await DisplayAlert("Error", $"Selected area is too big (x:{MathPlus.Round(Math.Abs(p1.X - p2.X), 3)}, y:{MathPlus.Round(Math.Abs(p1.Y - p2.Y), 3)}, " +
+                    $"max: x:{maxSizeX}, y:{maxSizeY})", "Ok");
+                return;
+            }
+
+            if (!await DisplayAlert("Confirm", $"Tiles between {p1} and {p2} will be downloaded", "Ok", "Cancel"))
+                return;
+
+            await Navigation.PopAsync();
+
+            // convert lon/lat to tile coordinates
+            p1 = Tile.getTileForCoordinates(p1);
+            p2 = Tile.getTileForCoordinates(p2);
+
+            // sometimes needed
+            if (p1.X > p2.X) {
+                double i = p1.X;
+                p1.X = p2.X;
+                p2.X = i;
+            }
+            if (p1.Y > p2.Y) {
+                double i = p1.Y;
+                p1.Y = p2.Y;
+                p2.Y = i;
+            }
+
+            if (StateSingleton.config == null)
+                StateSingleton.config = StateSingleton.ServerConfig.getFromFile();
+
+            List<FileToDownload> toDownload = new List<FileToDownload>();
+            for (int x = (int)p1.X; x <= (int)p2.X; x++) {
+                for (int y = (int)p1.Y; y <= (int)p2.Y; y++) {
+                    string savePath = Path.Combine(Util.SavePath_Server + @"tiles/16/", x.ToString(), $"{x}_{y}_16.png");
+                    if (File.Exists(savePath))
+                        continue; // don't download tiles again
+
+                    toDownload.Add(new FileToDownload(new string[] {
+                        StateSingleton.config.tileServerUrl + x + "/" + y + ".png",
+                        StateSingleton.config.tileServerUrl2 + x + "/" + y + ".png"
+                    }, savePath, Path.GetFileName(savePath)));
+                }
+            }
+
+            Navigation.PushAsync(new DownloadPage(toDownload.ToArray(), false));
+            lastTileDownload = DateTime.Now;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace MCE_API_SERVER.Controllers
         public static byte[] Get(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
-            Models.Player.TokenResponse returnTokens = TokenUtils.ReadTokens(authtoken);
+            TokenResponse returnTokens = TokenUtils.ReadTokens(authtoken);
 
             Log.Debug($"[{authtoken}]: Requested tokens."); // Debug since this is spammed a lot
 

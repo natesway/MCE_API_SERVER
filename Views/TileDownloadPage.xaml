@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" xmlns:essentials="clr-namespace:Xamarin.Essentials;assembly=Xamarin.Essentials"
+             x:Class="MCE_API_SERVER.Views.TileDownloadPage">
+    <ContentPage.Content>
+        <StackLayout>
+            <Label Text="Move the view over area you want to download" FontSize="Medium"/>
+            <StackLayout x:Name="layout"/>
+            <Button Text="Ok" Clicked="Btn_Ok_Clicked"/>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>

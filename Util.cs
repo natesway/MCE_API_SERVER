@@ -13,6 +13,7 @@ namespace MCE_API_SERVER
         public static string SavePath;
         public static string SavePath_Server;
         private static bool initialized;
+        public static Random rng;
 
         private static void Init()
         {
@@ -23,12 +24,70 @@ namespace MCE_API_SERVER
             if (!Directory.Exists(SavePath_Server))
                 Directory.CreateDirectory(SavePath_Server);
 
+            // initialize based on current time
+            rng = new Random(DateTime.Now.Second << 4 + DateTime.Now.Millisecond);
+
             initialized = true;
         }
 
         public static Assembly CurrentAssembly = Assembly.GetExecutingAssembly();
         //public static Action<string> InstallUpdate;
         public static Func<string> GetSavePath;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="v1">version 1</param>
+        /// <param name="v2">version 2</param>
+        /// <returns>
+        /// -2 - invalid 
+        /// -1 - v2 is newer 
+        /// 0 - versions are same 
+        /// 1 - v1 is newer 
+        /// </returns>
+        public static int CompareVersions(string v1, string v2)
+        {
+            if (!(v1.Contains('.') || v1.Contains(',')) || !(v2.Contains('.') || v2.Contains(',')))
+                return -2;
+
+            string[] v1s = v1.Split('.', ',');
+            string[] v2s = v2.Split('.', ',');
+
+            if (v1s[0] == v2s[0] && v1s[1] == v2s[1])
+                return 0;
+
+            if (int.TryParse(v1s[0], out int v1Major) && int.TryParse(v2s[0], out int v2Major)) {
+                if (v1Major < v2Major)
+                    return -1;
+                else if (v1Major > v2Major)
+                    return 1;
+            }
+            else
+                return -2; // one of versions is invalid
+
+            if (int.TryParse(v1s[1], out int v1Minor) && int.TryParse(v2s[1], out int v2Minor)) {
+                if (v1Minor < v2Minor)
+                    return -1;
+                else if (v1Minor > v2Minor)
+                    return 1;
+            }
+            else
+                return -2; // one of versions is invalid
+
+            // versions are same
+            return 0;
+        }
+
+        public static Mapsui.Geometries.Point SwapXY(this Mapsui.Geometries.Point p)
+            => new Mapsui.Geometries.Point(p.Y, p.X);
+
+        public static void Swap(ref int i1, ref int i2)
+        {
+            int _i1 = i1;
+            int _i2 = i2;
+            i1 = _i2;
+            i2 = _i1;
+        }
 
         public static byte[] Ok()
         {

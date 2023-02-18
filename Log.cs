@@ -35,6 +35,10 @@ namespace MCE_API_SERVER
                     Log.Error("Failed to move log file");
                     Log.Exception(ex);
                 }
+                try {
+                    File.Delete(Util.SavePath + saveFileName);
+                }
+                catch { }
             }
 
             if (saveStream != null && saveStream.CanWrite)

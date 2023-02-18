@@ -19,7 +19,7 @@ namespace MCE_API_SERVER
     public static class Server
     {
         public const int AppVersion_Major = 1;
-        public const int AppVersion_Minor = 1;
+        public const int AppVersion_Minor = 2;
         public static readonly string AppVersion = AppVersion_Major + "." + AppVersion_Minor;
 
         public static Thread serverThread;
