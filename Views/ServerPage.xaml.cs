@@ -28,6 +28,9 @@ namespace MCE_API_SERVER.Views
             }
         }
 
+        private void Btn_ClearLogs_Clicked(object sender, EventArgs e)
+            => ClearLogs();
+
         private void Btn_DownloadTiles_Clicked(object sender, EventArgs e)
         {
             if (lastTileDownload == null || lastTileDownload.AddMinutes(10) < DateTime.Now)
@@ -85,6 +88,23 @@ namespace MCE_API_SERVER.Views
                 }
             });
             t.Start();
+        }
+
+        private async Task ClearLogs()
+        {
+            if (!Directory.Exists(Util.SavePath + Log.saveHistoryName)) {
+                await DisplayAlert("Info", "You don't have any logs", "Ok");
+                return;
+            }
+
+            string[] logs = Directory.GetFiles(Util.SavePath + Log.saveHistoryName);
+            if (logs.Length == 0) {
+                await DisplayAlert("Info", "You don't have any logs", "Ok");
+                return;
+            }
+            else if (await DisplayAlert("Confirm", $"Do you want to delete {logs.Length} logs?", "Ok", "Cancel"))
+                for (int i = 0; i < logs.Length; i++)
+                    File.Delete(logs[i]);
         }
 
         private async Task AskTurnOnBackgroundUnrestricted()

@@ -9,7 +9,7 @@ namespace MCE_API_SERVER
     public static class Log
     {
         private const string saveFileName = "log.txt";
-        private const string saveHistoryName = "LogHistory/";
+        public const string saveHistoryName = "LogHistory/";
 
         public static Queue<LogMessage> ToLog = new Queue<LogMessage>();
 

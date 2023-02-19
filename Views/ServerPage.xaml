@@ -9,6 +9,7 @@
                 <Button Text="Start" Clicked="Btn_StartStop_Clicked" BackgroundColor="Green" HorizontalOptions="End" VerticalOptions="CenterAndExpand" CornerRadius="7"/>
             </Grid>
             <Button Text="Download Tiles" Clicked="Btn_DownloadTiles_Clicked" BackgroundColor="CornflowerBlue" HorizontalOptions="Center" CornerRadius="7"/>
+            <Button Text="Clear Logs" Clicked="Btn_ClearLogs_Clicked" BackgroundColor="CornflowerBlue" HorizontalOptions="Center" CornerRadius="7"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>
