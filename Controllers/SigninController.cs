@@ -13,14 +13,14 @@ namespace MCE_API_SERVER.Controllers
     public static class SigninController
     {
         [ServerHandle("/1/api/v1.1/player/profile/{profileID}", Types = new string[] { "GET" })]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             ProfileResponse response = new ProfileResponse(ProfileUtils.ReadProfile(args.UrlArgs["profileID"]));
             return Content(args, JsonConvert.SerializeObject(response), "application/json");
         }
 
         [ServerHandle("/api/v1.1/player/profile/{profileID}", Types = new string[] { "POST" })]
-        public static byte[] Post(ServerHandleArgs args)
+        public static HttpResponse Post(ServerHandleArgs args)
         {
             if (args.UrlArgs["profileID"] != "signin")
                 return BadRequest();

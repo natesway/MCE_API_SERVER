@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -89,82 +90,73 @@ namespace MCE_API_SERVER
             i2 = _i1;
         }
 
-        public static byte[] Ok()
+        public static byte[] ReadToEnd(this Stream s)
         {
-            string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\n\r\n";
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
-            return respHeader;
+            byte[] bytes = new byte[s.Length];
+            s.Read(bytes, 0, bytes.Length);
+            return bytes;
         }
 
-        public static byte[] Accepted()
+        public static HttpResponse Ok()
         {
-            string respHeaderString = $"HTTP/1.1 202 Accepted\r\nServer: csharp_server\r\n\r\n";
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
-            return respHeader;
+            return new HttpResponse(200);
         }
 
-        public static byte[] Unauthorized()
+        public static HttpResponse Accepted()
         {
-            string respHeaderString = $"HTTP/1.1 401 Unauthorized\r\nServer: csharp_server\r\n\r\n";
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
-            return respHeader;
+            return new HttpResponse(202);
         }
 
-        public static byte[] BadRequest()
+        public static HttpResponse Unauthorized()
         {
-            string respHeaderString = $"HTTP/1.1 400 Bad Request\r\nServer: csharp_server\r\n\r\n";
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
-            return respHeader;
+            return new HttpResponse(401);
         }
 
-        public static byte[] NoContent()
+        public static HttpResponse BadRequest()
         {
-            string respHeaderString = $"HTTP/1.1 204 No Content\r\nServer: csharp_server\r\n\r\n";
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
-            return respHeader;
+            return new HttpResponse(400);
         }
 
-        public static byte[] Content(ServerHandleArgs args, string respData, string respType, params string[] headers)
-            => CreateResp(args, Encoding.UTF8.GetBytes(respData), respType, headers);
-        public static byte[] CreateResp(ServerHandleArgs args, byte[] respData, string respType, params string[] headers)
+        public static HttpResponse NoContent()
         {
-            string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\nContent-Type: {respType}\r\ncharset: UTF-8";
+            return new HttpResponse(204);
+        }
 
-            if (headers != null && headers.Length > 0) {
-                for (int i = 0; i < headers.Length; i++)
-                    respHeaderString += "\r\n" + headers[i];
-            }
-
-            respHeaderString += "\r\n\r\n";
-
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+        public static HttpResponse Content(ServerHandleArgs args, string respData, string respType, Dictionary<string, string> headers)
+            => Content(args, Encoding.UTF8.GetBytes(respData), respType, headers);
+        public static HttpResponse Content(ServerHandleArgs args, byte[] respData, string respType, Dictionary<string, string> headers)
+        {
+            headers.Add("charset", "UTF-8");
+            headers.Add("Server", "csharp_server");
 
             if (args.Method == "HEAD")
-                return respHeader;
+                return new HttpResponse(headers, 200, respType);
 
-            byte[] resp = new byte[respHeader.Length + respData.Length];
+            return new HttpResponse(respData, headers, 200, respType);
+        }
+        public static HttpResponse Content(ServerHandleArgs args, string respData, string respType)
+            => CreateResp(args, Encoding.UTF8.GetBytes(respData), respType);
+        public static HttpResponse CreateResp(ServerHandleArgs args, byte[] respData, string respType)
+        {
+            if (args.Method == "HEAD")
+                return new HttpResponse(new Dictionary<string, string>() { { "charset", "UTF-8" }, { "Server", "csharp_server" } }, 200, respType);
 
-            Array.Copy(respHeader, resp, respHeader.Length);
-            Array.Copy(respData, 0, resp, respHeader.Length, respData.Length);
-
-            return resp;
+            return new HttpResponse(respData, new Dictionary<string, string>() { { "charset", "UTF-8" }, { "Server", "csharp_server" } }, 200, respType);
         }
 
-        public static byte[] File(ServerHandleArgs args, byte[] respData, string respType, System.Net.Mime.ContentDisposition cd)
+        public static HttpResponse File(ServerHandleArgs args, byte[] respData, string respType, System.Net.Mime.ContentDisposition cd)
         {
-            string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\nContent-Type: {respType}\r\nContent-Length: {cd.Size}\r\nContent-Disposition: {cd.ToString()}\r\nContent-Transfer-Encoding: binary\r\n\r\n";
-
-            byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+            Dictionary<string, string> headers = new Dictionary<string, string>();
+            headers.Add("Server", "csharp_server");
+            headers.Add("Content-Type", respType);
+            headers.Add("Content-Length", cd.Size.ToString());
+            headers.Add("Content-Disposition", cd.ToString());
+            headers.Add("Content-Transfer-Encoding", "binary");
 
             if (args.Method == "HEAD")
-                return respHeader;
+                return new HttpResponse(headers, 200, respType);
 
-            byte[] resp = new byte[respHeader.Length + respData.Length];
-
-            Array.Copy(respHeader, resp, respHeader.Length);
-            Array.Copy(respData, 0, resp, respHeader.Length, respData.Length);
-
-            return resp;
+            return new HttpResponse(respData, headers, 200, respType);
         }
 
         public static string GetFullResourceName(string name) => $"MCE_API_SERVER.Data.{name.Replace('/', '.')}";

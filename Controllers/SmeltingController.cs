@@ -14,7 +14,7 @@ namespace MCE_API_SERVER.Controllers
     public static class SmeltingController
     {
         [ServerHandle("/1/api/v1.1/smelting/{slot}/start")]
-        public static byte[] PostNewSmeltingJob(ServerHandleArgs args)
+        public static HttpResponse PostNewSmeltingJob(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
@@ -32,11 +32,10 @@ namespace MCE_API_SERVER.Controllers
             updateResponse.updates.inventory = nextStreamId;
 
             return Content(args, JsonConvert.SerializeObject(updateResponse), "application/json");
-            //return Accepted(Content(returnUpdates, "application/json"));
         }
 
         [ServerHandle("/1/api/v1.1/smelting/finish/price")]
-        public static byte[] GetSmeltingPrice(ServerHandleArgs args)
+        public static HttpResponse GetSmeltingPrice(ServerHandleArgs args)
         {
             TimeSpan remainingTime = TimeSpan.Parse(args.Query["remainingTime"]);
             CraftingPriceResponse returnPrice = new CraftingPriceResponse { result = new CraftingPrice { cost = 1, discount = 0, validTime = remainingTime }, updates = new Updates() };
@@ -45,7 +44,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/smelting/{slot}/finish")]
-        public static byte[] PostSmeltingFinish(ServerHandleArgs args)
+        public static HttpResponse PostSmeltingFinish(ServerHandleArgs args)
         {
             string body = args.Content;
 
@@ -56,42 +55,37 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/smelting/{slot}")]
-        public static byte[] GetSmeltingStatus(ServerHandleArgs args)
+        public static HttpResponse GetSmeltingStatus(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
             SmeltingSlotResponse smeltingStatus = SmeltingUtils.GetSmeltingJobInfo(authtoken, int.Parse(args.UrlArgs["slot"]));
 
             return Content(args, JsonConvert.SerializeObject(smeltingStatus), "application/json");
-            //return Accepted(Content(returnTokens, "application/json"));
         }
 
         [ServerHandle("/1/api/v1.1/smelting/{slot}/collectItems")]
-        public static byte[] GetCollectSmeltingItems(ServerHandleArgs args)
+        public static HttpResponse GetCollectSmeltingItems(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
             CollectItemsResponse returnUpdates = SmeltingUtils.FinishSmeltingJob(authtoken, int.Parse(args.UrlArgs["slot"]));
 
             return Content(args, JsonConvert.SerializeObject(returnUpdates), "application/json");
-            //return Accepted(Content(returnTokens, "application/json"));
         }
 
         [ServerHandle("/1/api/v1.1/smelting/{slot}/stop")]
-        public static byte[] GetStopSmeltingJob(ServerHandleArgs args)
+        public static HttpResponse GetStopSmeltingJob(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
             bool returnUpdates = SmeltingUtils.CancelSmeltingJob(authtoken, int.Parse(args.UrlArgs["slot"]));
 
             return Accepted();
-
-            //return Content(JsonConvert.SerializeObject(returnUpdates), "application/json");
-            //return Accepted(Content(returnTokens, "application/json"));
         }
 
         [ServerHandle("/1/api/v1.1/smelting/{slot}/unlock")]
-        public static byte[] GetUnlockSmeltingSlot(ServerHandleArgs args)
+        public static HttpResponse GetUnlockSmeltingSlot(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 

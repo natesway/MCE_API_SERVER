@@ -1,4 +1,4 @@
-﻿using MCE_API_SERVER.Attributes;
+﻿/*using MCE_API_SERVER.Attributes;
 using MCE_API_SERVER.Models.Features;
 using MCE_API_SERVER.Models.Login;
 using MCE_API_SERVER.Models.Player;
@@ -26,7 +26,7 @@ namespace MCE_API_SERVER
 
         public static bool Running { get; private set; }
 
-        public static HttpListener listener;
+        public static TcpListener listener;
 
         private static bool initialized = false;
 
@@ -173,8 +173,7 @@ namespace MCE_API_SERVER
             if (!initialized)
                 Init();
 
-            listener = new HttpListener();
-            listener.Prefixes.Add($"http://*:{Settings.ServerPort}/");
+            listener = new TcpListener(IPAddress.Loopback, Settings.ServerPort);
             listener.Start();
 
             serverThread = new Thread(Run);
@@ -194,29 +193,99 @@ namespace MCE_API_SERVER
 
         private static void Run()
         {
+            HttpListener hl = new HttpListener();
+            hl.Prefixes.Add("http://*:7070/");
+            hl.Start();
+
+            HttpListenerContext hlc = hl.GetContext();
+            string body =  new StreamReader(hlc.Request.InputStream).ReadToEnd();
+            hlc.Response.Close();
+
+            Log.Information("OK");
+            hl.Stop();
+
             while (Running) {
                 try {
-                    HttpListenerContext context = listener.GetContext();
+                    TcpClient client = listener.AcceptTcpClient();
 
-                    string sub = context.Request.RawUrl.Split('?')[0];
-                    if (sub[sub.Length - 1] == '/')
-                        sub = sub.Substring(0, sub.Length - 1);
-                    if (sub[0] != '/')
-                        sub = "/" + sub;
+                    #region parse
+                    string data = "";
+                    List<byte> dataBytes = new List<byte>();
+                    byte[] bytes = new byte[4096];
 
-                    string method = context.Request.HttpMethod;
+                    client.ReceiveBufferSize = bytes.Length;
+                    int c = 0;
+                    while (client.Client.Available > 0 || c < 5) {
+                        if (client.Client.Available > 0) {
+                            int numBytes = client.Client.Receive(bytes, client.Available, SocketFlags.None);
+                            dataBytes.AddRange(bytes.Take(numBytes));
+                            data += Encoding.UTF8.GetString(bytes, 0, numBytes);
+                        }
 
+                        Thread.Sleep(10);
+                        c++;
+                    }
+                    // sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="102", "Google Chrome";v="102"
+                    // sec-ch-ua: " Not A;Brand";v="99", "Chromium";v="102", "Microsoft Edge";v="102"
+                    string type = "";
+                    string fullSub = "";
+                    string sub = "";
+                    string platform = "";
+                    string language = "";
+                    string content = "";
+
+                    foreach (string line in data.Split('\n')) {
+                        if (line.StartsWith("GET")) {
+                            type = "GET";
+                            if (line.StartsWith("GET / HTTP/1.1"))
+                                fullSub = "/main";
+                            else
+                                fullSub = line.Split(' ')[1];
+                        }
+                        else if (line.StartsWith("PUT")) {
+                            type = "PUT";
+                            if (line.StartsWith("PUT / HTTP/1.1"))
+                                fullSub = "/main";
+                            else
+                                fullSub = line.Split(' ')[1];
+                        }
+                        else if (line.StartsWith("POST")) {
+                            type = "POST";
+                            if (line.StartsWith("POST / HTTP/1.1"))
+                                fullSub = "/main";
+                            else
+                                fullSub = line.Split(' ')[1];
+                        }
+                        else if (line.StartsWith("HEAD")) {
+                            type = "HEAD";
+                            if (line.StartsWith("HEAD / HTTP/1.1"))
+                                fullSub = "/main";
+                            else
+                                fullSub = line.Split(' ')[1];
+                        }
+                        else if (line.StartsWith("sec-ch-ua-platform:"))
+                            platform = line.Split(' ')[1];
+                        else if (line.StartsWith("Accept-Language:"))
+                            language = line.Split(' ')[1].Split(';')[0];
+                    }
+
+                    if (type == "PUT" || type == "POST") content = data.Split(new string[] { "\r\n\r\n" }, StringSplitOptions.None).Last();
+
+                    fullSub = fullSub.Replace("%20", " ");
+                    sub = fullSub.Split('?')[0];
+                    #endregion
 
                     if (Settings.LogRequests)
-                        Log.Debug($"{sub} {method}", true);
+                        Log.Debug($"{sub} {type}", true);
 
-                    HttpResponse resp = new HttpResponse(200);
+                    byte[] resp = new byte[0];
+
                     for (int i = 0; i < handles.Count; i++) {
                         for (int j = 0; j < handles[i].Urls.Length; j++) {
                             if (handles[i].Types.Length != 0) {
                                 bool found = true;
                                 for (int x = 0; x < handles[i].Types.Length; x++)
-                                    if (method == handles[i].Types[x]) {
+                                    if (type == handles[i].Types[x]) {
                                         found = true;
                                         break;
                                     }
@@ -225,7 +294,7 @@ namespace MCE_API_SERVER
                             }
 
                             if (handles[i].Urls[j] == sub) {
-                                resp = handles[i].Function(new ServerHandleArgs((IPEndPoint)context.Request.RemoteEndPoint, method, context));
+                                resp = handles[i].Function(new ServerHandleArgs(fullSub, data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type, client.GetStream()));
                                 goto response;
                             }
                             else { // invalid or url values
@@ -288,36 +357,35 @@ namespace MCE_API_SERVER
                                 if (fail)
                                     continue;
 
-                                resp = handles[i].Function(new ServerHandleArgs((IPEndPoint)context.Request.RemoteEndPoint, method, context, urlArgs));
+                                if (content == "") {
+                                    int z = 0;
+                                }
+
+                                resp = handles[i].Function(new ServerHandleArgs(fullSub, data, dataBytes.ToArray(), content, (IPEndPoint)client.Client.RemoteEndPoint, type, client.GetStream(), urlArgs));
                                 goto response;
                             }
                         }
                     }
 
-                    Log.Error($"Handle for url {sub} wasn't found");
+                    Log.Error($"Handle for url {sub}({fullSub}) wasn't found");
 
                     string mimeType = "text/plain";
 
-                    context.Response.Headers.Set("Server", "csharp_server");
-                    context.Response.Headers.Set("Content-Type", mimeType);
-                    context.Response.Headers.Set("charset", "UTF-8");
+                    string respHeaderString = $"HTTP/1.1 200 OK\r\nServer: csharp_server\r\nContent-Type: {mimeType}\r\ncharset: UTF-8\r\n\r\n";
 
-                    resp.Content = Encoding.UTF8.GetBytes("Hello World!");
+                    byte[] respData = Encoding.UTF8.GetBytes("Hello World!");
+
+                    byte[] respHeader = Encoding.UTF8.GetBytes(respHeaderString);
+
+                    resp = new byte[respHeader.Length + respData.Length];
+
+                    Array.Copy(respHeader, resp, respHeader.Length);
+                    Array.Copy(respData, 0, resp, respHeader.Length, respData.Length);
 
                     response:
-                    foreach(KeyValuePair<string, string> kvp in resp.Headers)
-                        context.Response.Headers.Add(kvp.Key, kvp.Value);
-
-                    if (resp.Content.Length > 0 || method == "HEAD")
-                        context.Response.ContentType = resp.MimeType;
-                    
-                    if (resp.Content.Length > 0) {
-                        context.Response.ContentLength64 = resp.Content.Length;
-                        context.Response.OutputStream.Write(resp.Content, 0, resp.Content.Length);
-                        context.Response.OutputStream.Flush();
-                    }
-                    context.Response.OutputStream.Close();
-                    context.Response.Close(); 
+                    client.Client.SendTo(resp, client.Client.RemoteEndPoint);
+                    client.Close();
+                    client.Dispose();
                 }
                 catch (Exception ex) {
                     if (ex is SocketException se && se.SocketErrorCode == SocketError.Interrupted) { } // don't log this exception, happens when server is stopped
@@ -329,51 +397,28 @@ namespace MCE_API_SERVER
         }
     }
 
-    public delegate HttpResponse ServerHandleFunction(ServerHandleArgs args);
-
-    public struct HttpResponse
-    {
-        public byte[] Content;
-        public Dictionary<string, string> Headers;
-        public int StatusCode;
-        public string MimeType;
-
-        public HttpResponse(int statusCode, string mimeType = "text/plain") 
-            : this(new byte[0], new Dictionary<string, string>() { { "Server", "csharp_server" } }, statusCode, mimeType)
-        { }
-        public HttpResponse(byte[] content, int statusCode, string mimeType = "text/plain") 
-            : this(content, new Dictionary<string, string>() { { "Server", "csharp_server" } }, statusCode, mimeType)
-        { }
-        public HttpResponse(Dictionary<string, string> headers, int statusCode, string mimeType = "text/plain") 
-            : this(new byte[0], headers, statusCode, mimeType)
-        { }
-        public HttpResponse(byte[] content, Dictionary<string, string> headers, int statusCode, string mimeType)
-        {
-            Content = content;
-            Headers = headers;
-            StatusCode = statusCode;
-            MimeType = mimeType;
-        }
-    }
+    public delegate byte[] ServerHandleFunction(ServerHandleArgs args);
 
     public struct ServerHandleArgs
     {
-        public string Content { get {
-                StreamReader stream = new StreamReader(Context.Request.InputStream);
-                return stream.ReadToEndAsync().Result;
-            } }
+        public string Data;
+        public byte[] DataBytes;
+        public string Content;
         public IPEndPoint Sender;
         public string Method;
         public Dictionary<string, string> UrlArgs;
         public Dictionary<string, string> Headers;
         public Dictionary<string, string> Query;
-        public HttpListenerContext Context;
+        public NetworkStream Stream;
 
-        public ServerHandleArgs(IPEndPoint sender, string method, HttpListenerContext context, Dictionary<string, string> urlArgs = null)
-        {;
+        public ServerHandleArgs(string fullUrl, string data, byte[] dataBytes, string content, IPEndPoint sender, string method, NetworkStream stream, Dictionary<string, string> urlArgs = null)
+        {
+            Data = data;
+            DataBytes = dataBytes;
+            Content = content;
             Sender = sender;
             Method = method;
-            Context = context;
+            Stream = stream;
             if (urlArgs == null)
                 UrlArgs = new Dictionary<string, string>();
             else
@@ -381,13 +426,30 @@ namespace MCE_API_SERVER
 
             // Parse headers
             Headers = new Dictionary<string, string>();
-            foreach (string s in Context.Request.Headers.AllKeys)
-                Headers.Add(s, Context.Request.Headers[s]);
+            string header = Data.Split(new string[] { "\r\n\r\n" }, StringSplitOptions.None)[0];
+            string[] headers = header.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+            for (int i = 1; i < headers.Length; i++) {
+                string s = headers[i].Replace(" ", "");
+                int index = s.IndexOf(':');
+                Headers.Add(s.Substring(0, index), s.Substring(index + 1));
+            }
 
             // Parse query
             Query = new Dictionary<string, string>();
-            foreach (string s in Context.Request.QueryString.AllKeys)
-                Query.Add(s, Context.Request.QueryString[s]);
+            if (fullUrl.Contains('?')) {
+                try {
+                    string queryString = fullUrl.Substring(fullUrl.IndexOf('?') + 1);
+                    string[] querys = queryString.Split('&', ';'); // ; isn't recomended, just in case
+                    for (int i = 0; i < querys.Length; i++) {
+                        string[] split = querys[i].Split('=');
+                        if (split.Length > 1)
+                            Query.Add(split[0], split[1]);
+                    }
+                }
+                catch {
+                    Log.Error($"Failed to make query for url {fullUrl}");
+                }
+            }
         }
     }
 
@@ -413,3 +475,4 @@ namespace MCE_API_SERVER
         }
     }
 }
+*/

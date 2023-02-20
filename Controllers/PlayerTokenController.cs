@@ -17,18 +17,19 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerTokenController
     {
         [ServerHandle("/1/api/v1.1/player/tokens")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             TokenResponse returnTokens = TokenUtils.ReadTokens(authtoken);
 
             Log.Debug($"[{authtoken}]: Requested tokens."); // Debug since this is spammed a lot
 
-            return Content(args, JsonConvert.SerializeObject(returnTokens), "application/json", "Cache-Control: max-age=11200");
+            return Content(args, JsonConvert.SerializeObject(returnTokens), "application/json", 
+                new Dictionary<string, string>() { { "Cache-Control", "max-age=11200" } });
         }
 
         [ServerHandle("/1/api/v1.1/player/tokens/{token}/redeem")] // TODO: Proper testing
-        public static byte[] RedeemToken(ServerHandleArgs args)
+        public static HttpResponse RedeemToken(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
@@ -42,11 +43,11 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerRubiesController
     {
         [ServerHandle("/1/api/v1.1/player/rubies")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             RubyResponse obj = RubyUtils.GetNormalRubyResponse(args.Headers["Authorization"]);
             string response = JsonConvert.SerializeObject(obj);
-            return Content(args, response, "application/json", "Cache-Control: max-age=11200");
+            return Content(args, response, "application/json", new Dictionary<string, string>() { { "Cache-Control", "max-age=11200" } });
         }
     }
 
@@ -54,7 +55,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerLanguageController
     {
         [ServerHandle("/1/api/v1.1/player/profile/language")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             return Ok();
         }
@@ -64,11 +65,11 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerSplitRubiesController
     {
         [ServerHandle("/1/api/v1.1/player/splitRubies")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             SplitRubyResponse obj = RubyUtils.ReadRubies(args.Headers["Authorization"]);
             string response = JsonConvert.SerializeObject(obj);
-            return Content(args, response, "application/json", "Cache-Control: max-age=11200");
+            return Content(args, response, "application/json", new Dictionary<string, string>() { { "Cache-Control", "max-age=11200" } });
         }
     }
 
@@ -76,7 +77,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerChallengesController
     {
         [ServerHandle("1/api/v1.1/player/challenges")]
-        public static byte[] GetChallenges(ServerHandleArgs args)
+        public static HttpResponse GetChallenges(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             ChallengesResponse challenges = ChallengeUtils.ReloadChallenges(authtoken);
@@ -85,7 +86,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("1/api/v1.1/challenges/season/active/{challengeId}")]
-        public static byte[] PutActivateChallenge(ServerHandleArgs args)
+        public static HttpResponse PutActivateChallenge(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             bool success = ChallengeUtils.ActivateChallengeForPlayer(authtoken, new Guid(args.UrlArgs["challengeId"]));
@@ -95,7 +96,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("1/api/v1.1/challenges/timed/generate")]
-        public static byte[] PostGenerateTimedChallenges(ServerHandleArgs args)
+        public static HttpResponse PostGenerateTimedChallenges(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             ChallengeUtils.GenerateTimedChallenges(authtoken);
@@ -103,7 +104,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("1/api/v1.1/challenges/continuous/{challengeId}/remove")]
-        public static byte[] DeleteContinuousChallenge(ServerHandleArgs args)
+        public static HttpResponse DeleteContinuousChallenge(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             ChallengeUtils.RemoveChallengeFromPlayer(authtoken, new Guid(args.UrlArgs["challengeId"]));
@@ -115,7 +116,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerUtilityBlocksController
     {
         [ServerHandle("/1/api/v1.1/player/utilityBlocks")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             Models.Features.UtilityBlocksResponse response = UtilityBlockUtils.ReadUtilityBlocks(authtoken);
@@ -128,13 +129,13 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerInventoryController
     {
         [ServerHandle("/1/api/v1.1/inventory/catalogv3")]
-        public static byte[] GetCatalog(ServerHandleArgs args)
+        public static HttpResponse GetCatalog(ServerHandleArgs args)
         {
             return Content(args, JsonConvert.SerializeObject(StateSingleton.catalog), "application/json");
         }
 
         [ServerHandle("/1/api/v1.1/inventory/survival")]
-        public static byte[] GetSurvivalInventory(ServerHandleArgs args)
+        public static HttpResponse GetSurvivalInventory(ServerHandleArgs args)
         {
             InventoryResponse inv = InventoryUtils.ReadInventory(args.Headers["Authorization"]);
             string jsonstring = JsonConvert.SerializeObject(inv);
@@ -142,7 +143,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/inventory/survival/hotbar")]
-        public static byte[] PutItemInHotbar(ServerHandleArgs args)
+        public static HttpResponse PutItemInHotbar(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             InventoryResponse.Hotbar[] newHotbar = JsonConvert.DeserializeObject<InventoryResponse.Hotbar[]>(args.Content);
@@ -156,7 +157,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerSettingsController
     {
         [ServerHandle("/1/api/v1.1/settings")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             return Content(args, JsonConvert.SerializeObject(StateSingleton.settings), "application/json");
         }
@@ -166,7 +167,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerRecipeController
     {
         [ServerHandle("/1/api/v1.1/recipes")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             string recipeString = System.IO.File.ReadAllText(SavePath_Server + StateSingleton.config.recipesFileLocation); // Since the serialized version has the properties mixed up
             return Content(args, recipeString, "application/json");
@@ -177,14 +178,14 @@ namespace MCE_API_SERVER.Controllers
     public static class JournalController
     {
         [ServerHandle("/1/api/v1.1/journal/catalog")]
-        public static byte[] GetCatalog(ServerHandleArgs args)
+        public static HttpResponse GetCatalog(ServerHandleArgs args)
         {
             StreamReader fs = new StreamReader(SavePath_Server + StateSingleton.config.journalCatalogFileLocation);
             return Content(args, fs.ReadToEnd(), "application/json");
         }
 
         [ServerHandle("/1/api/v1.1/player/journal")]
-        public static byte[] GetJournal(ServerHandleArgs args)
+        public static HttpResponse GetJournal(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             Models.Features.JournalResponse resp = JournalUtils.ReadJournalForPlayer(authtoken);
@@ -198,7 +199,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerBoostController
     {
         [ServerHandle("/1/api/v1.1/boosts")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             var responseobj = BoostUtils.UpdateBoosts(authtoken);
@@ -207,7 +208,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/boosts/potions/{boostId}/activate")]
-        public static byte[] GetRedeemBoost(ServerHandleArgs args)
+        public static HttpResponse GetRedeemBoost(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             var returnUpdates = BoostUtils.ActivateBoost(authtoken, new Guid(args.UrlArgs["boostId"]));
@@ -215,7 +216,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/boosts/potions/{boostInstanceId}/deactivate")]
-        public static byte[] DeactivateBoost(ServerHandleArgs args)
+        public static HttpResponse DeactivateBoost(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             var returnUpdates = BoostUtils.RemoveBoost(authtoken, args.UrlArgs["boostInstanceId"]);
@@ -223,7 +224,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/boosts/{boostInstanceId}")]
-        public static byte[] DeleteBoost(ServerHandleArgs args)
+        public static HttpResponse DeleteBoost(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             var returnUpdates = BoostUtils.RemoveBoost(authtoken, args.UrlArgs["boostInstanceId"]);
@@ -235,7 +236,7 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerFeaturesController
     {
         [ServerHandle("/1/api/v1.1/features")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             FeaturesResponse responseobj = new FeaturesResponse() { result = new FeaturesResult(), updates = new Updates() };
             string response = JsonConvert.SerializeObject(responseobj);
@@ -247,14 +248,14 @@ namespace MCE_API_SERVER.Controllers
     public static class PlayerShopController
     {
         [ServerHandle("/1/api/v1.1/products/catalog")]
-        public static byte[] GetProductCatalog(ServerHandleArgs args)
+        public static HttpResponse GetProductCatalog(ServerHandleArgs args)
         {
             string catalog = System.IO.File.ReadAllText(SavePath_Server + StateSingleton.config.productCatalogFileLocation); // Since the serialized version has the properties mixed up
             return Content(args, catalog, "application/json");
         }
 
         [ServerHandle("/1/api/v1.1/commerce/storeItemInfo")]
-        public static byte[] GetStoreItemInfo(ServerHandleArgs args)
+        public static HttpResponse GetStoreItemInfo(ServerHandleArgs args)
         {
             string body = args.Content;
             StoreItemInfoResponse response = ShopUtils.getStoreItemInfo(JsonConvert.DeserializeObject<List<StoreItemInfo>>(body));
@@ -262,7 +263,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/commerce/purchase")]
-        public static byte[] ItemPurchase(ServerHandleArgs args)
+        public static HttpResponse ItemPurchase(ServerHandleArgs args)
         {
             string body = args.Content;
             RubyResponse response = ShopUtils.purchase(args.Headers["Authorization"], JsonConvert.DeserializeObject<PurchaseItemRequest>(body));
@@ -270,7 +271,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/commerce/purchaseV2")]
-        public static byte[] ItemPurchaseV2(ServerHandleArgs args)
+        public static HttpResponse ItemPurchaseV2(ServerHandleArgs args)
         {
             string body = args.Content;
             SplitRubyResponse response = ShopUtils.purchaseV2(args.Headers["Authorization"], JsonConvert.DeserializeObject<PurchaseItemRequest>(body));

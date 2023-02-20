@@ -13,7 +13,7 @@ namespace MCE_API_SERVER.Controllers
     public static class CraftingController
     {
         [ServerHandle("/1/api/v1.1/crafting/{slot}/start")]
-        public static byte[] PostNewCraftingJob(ServerHandleArgs args)
+        public static HttpResponse PostNewCraftingJob(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             int slot = int.Parse(args.UrlArgs["slot"]);
@@ -37,7 +37,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/crafting/finish/price")]
-        public static byte[] GetCraftingPrice(ServerHandleArgs args)
+        public static HttpResponse GetCraftingPrice(ServerHandleArgs args)
         {
             TimeSpan remainingTime = TimeSpan.Parse(args.Query["remainingTime"]);
             CraftingPriceResponse returnPrice = new CraftingPriceResponse { result = new CraftingPrice { cost = 1, discount = 0, validTime = remainingTime }, updates = new Updates() };
@@ -46,7 +46,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/crafting/{slot}/finish")]
-        public static byte[] PostCraftingFinish(ServerHandleArgs args)
+        public static HttpResponse PostCraftingFinish(ServerHandleArgs args)
         {
             string body = args.Content;
             int slot = int.Parse(args.UrlArgs["slot"]);
@@ -58,7 +58,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/crafting/{slot}")]
-        public static byte[] GetCraftingStatus(ServerHandleArgs args)
+        public static HttpResponse GetCraftingStatus(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             int slot = int.Parse(args.UrlArgs["slot"]);
@@ -70,7 +70,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/crafting/{slot}/collectItems")]
-        public static byte[] GetCollectCraftingItems(ServerHandleArgs args)
+        public static HttpResponse GetCollectCraftingItems(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             int slot = int.Parse(args.UrlArgs["slot"]);
@@ -82,7 +82,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/crafting/{slot}/stop")]
-        public static byte[] GetStopCraftingJob(ServerHandleArgs args)
+        public static HttpResponse GetStopCraftingJob(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             int slot = int.Parse(args.UrlArgs["slot"]);
@@ -96,7 +96,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/crafting/{slot}/unlock")]
-        public static byte[] GetUnlockCraftingSlot(ServerHandleArgs args)
+        public static HttpResponse GetUnlockCraftingSlot(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             int slot = int.Parse(args.UrlArgs["slot"]);

@@ -10,7 +10,7 @@ namespace MCE_API_SERVER.Controllers
     public static class LocationController
     {
         [ServerHandle("/1/api/v1.1/locations/{latitude}/{longitude}")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             //Create our response
             LocationResponse.Root resp = TappableUtils.GetActiveLocations(double.Parse(args.UrlArgs["latitude"]), double.Parse(args.UrlArgs["longitude"]));

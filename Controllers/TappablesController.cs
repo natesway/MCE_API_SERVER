@@ -10,7 +10,7 @@ namespace MCE_API_SERVER.Controllers
     public static class TappablesController
     {
         [ServerHandle("/1/api/v1.1/tappables/{x}_{y}", Types = new string[] { "POST" })]
-        public static byte[] Post(ServerHandleArgs args)
+        public static HttpResponse Post(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;

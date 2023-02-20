@@ -6,7 +6,10 @@ using MCE_API_SERVER.Utils;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Net.WebSockets;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using static MCE_API_SERVER.Util;
 
 namespace MCE_API_SERVER.Controllers
@@ -17,7 +20,7 @@ namespace MCE_API_SERVER.Controllers
         #region Buildplates
 
         [ServerHandle("/1/api/v1.1/multiplayer/buildplate/{buildplateId}/instances")]
-        public static byte[] PostCreateInstance(ServerHandleArgs args)
+        public static HttpResponse PostCreateInstance(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -28,7 +31,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/multiplayer/buildplate/{buildplateId}/play/instances")]
-        public static byte[] PostCreatePlayInstance(ServerHandleArgs args)
+        public static HttpResponse PostCreatePlayInstance(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -39,7 +42,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/buildplates")]
-        public static byte[] GetBuildplates(ServerHandleArgs args)
+        public static HttpResponse GetBuildplates(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
@@ -49,7 +52,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/buildplates/{buildplateId}/share")]
-        public static byte[] ShareBuildplate(ServerHandleArgs args)
+        public static HttpResponse ShareBuildplate(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             ShareBuildplateResponse response = BuildplateUtils.ShareBuildplate(Guid.Parse(args.UrlArgs["buildplateId"]), authtoken);
@@ -57,7 +60,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/buildplates/shared/{buildplateId}")]
-        public static byte[] GetSharedBuildplate(ServerHandleArgs args)
+        public static HttpResponse GetSharedBuildplate(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             SharedBuildplateResponse response = BuildplateUtils.ReadSharedBuildplate(args.UrlArgs["buildplateId"]);
@@ -65,7 +68,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/multiplayer/buildplate/shared/{buildplateId}/play/instances")]
-        public static byte[] PostSharedBuildplateCreatePlayInstance(ServerHandleArgs args)
+        public static HttpResponse PostSharedBuildplateCreatePlayInstance(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -76,7 +79,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/multiplayer/join/instances")]
-        public static byte[] PostMultiplayerJoinInstance(ServerHandleArgs args)
+        public static HttpResponse PostMultiplayerJoinInstance(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -90,7 +93,7 @@ namespace MCE_API_SERVER.Controllers
         #endregion
 
         [ServerHandle("/1/api/v1.1/multiplayer/encounters/{adventureid}/instances")]
-        public static byte[] PostCreateEncounterInstance(ServerHandleArgs args)
+        public static HttpResponse PostCreateEncounterInstance(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -101,7 +104,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/multiplayer/adventures/{adventureid}/instances")]
-        public static byte[] PostCreateAdventureInstance(ServerHandleArgs args)
+        public static HttpResponse PostCreateAdventureInstance(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -112,7 +115,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/multiplayer/encounters/state")]
-        public static byte[] EncounterState(ServerHandleArgs args)
+        public static HttpResponse EncounterState(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
             string body = args.Content;
@@ -122,7 +125,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/multiplayer/partitions/{worldId}/instances/{instanceId}")]
-        public static byte[] GetInstanceStatus(ServerHandleArgs args)
+        public static HttpResponse GetInstanceStatus(ServerHandleArgs args)
         {
             string authtoken = args.Headers["Authorization"];
 
@@ -134,7 +137,7 @@ namespace MCE_API_SERVER.Controllers
         }
 
         [ServerHandle("/1/api/v1.1/private/server/command")]
-        public static byte[] PostServerCommand(ServerHandleArgs args)
+        public static HttpResponse PostServerCommand(ServerHandleArgs args)
         {
             string body = args.Content;
             ServerCommandRequest parsedRequest = JsonConvert.DeserializeObject<ServerCommandRequest>(body);
@@ -146,13 +149,22 @@ namespace MCE_API_SERVER.Controllers
         }
 
         // idk what to do with it
-        /*[ServerHandle("/1/api/v1.1/private/server/ws")]
-		public static byte[] GetWebSocketServer()
-		{
-			if (HttpContext.WebSockets.IsWebSocketRequest) {
-				var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-				await MultiplayerUtils.AuthenticateServer(webSocket);
-			}
-		}*/
+        [ServerHandle("/1/api/v1.1/private/server/ws")]
+        public static HttpResponse GetWebSocketServer(ServerHandleArgs args)
+        {
+            if (args.Context.Request.IsWebSocketRequest)
+                GetWebSocketServerAsync(args).Wait();
+            return Ok();
+		}
+
+        private static async Task GetWebSocketServerAsync(ServerHandleArgs args)
+        {
+            //WebSocket ws = WebSocket.CreateFromStream(args.Context.Request.InputStream, false, "http", TimeSpan.FromSeconds(1d));
+            WebSocket ws = WebSocket.CreateClientWebSocket(args.Context.Request.InputStream, "http", 4096, 4096, TimeSpan.FromSeconds(1d), false,
+                new ArraySegment<byte>(new byte[2 * 4096 + 4096 + 256 + 20 + 4096]));
+            await MultiplayerUtils.AuthenticateServer(ws);
+            /*HttpListenerWebSocketContext webSocketContext = await args.Context.AcceptWebSocketAsync("tcp");
+            await MultiplayerUtils.AuthenticateServer(webSocketContext.WebSocket);*/
+        }
     }
 }

@@ -12,7 +12,7 @@ namespace MCE_API_SERVER.Controllers
     public static class AdventureScrollsController
     {
         [ServerHandle("/1/api/v1.1/adventures/scrolls")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             ScrollsResponse responseobj = new ScrollsResponse();
             string response = JsonConvert.SerializeObject(responseobj);
@@ -20,7 +20,7 @@ namespace MCE_API_SERVER.Controllers
         } // TODO: Fixed String
 
         [ServerHandle("/1/api/v1.1/adventures/scrolls/{crystalId}")]
-        public static byte[] PostRedeemCrystal(ServerHandleArgs args)
+        public static HttpResponse PostRedeemCrystal(ServerHandleArgs args)
         {
             string playerId = args.Headers["Authorization"];
 

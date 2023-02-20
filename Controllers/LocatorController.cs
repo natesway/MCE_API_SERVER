@@ -11,10 +11,10 @@ namespace MCE_API_SERVER.Controllers
     public static class LocatorController
     {
         [ServerHandle("/player/environment", "/api/v1.1/player/environment")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             string replyIP = StateSingleton.config.useBaseServerIP ? StateSingleton.config.baseServerIP :
-                $"{"http://"/*StateSingleton.config.protocol*/}{args.Sender.Address}:{args.Sender.Port}";
+                $"{"http://"/*StateSingleton.config.protocol*/}{args.Context.Request.RemoteEndPoint.Address}:{args.Sender.Port}";
 
             Log.Information($"{args.Sender} has issued locator, replying with {replyIP}");
 

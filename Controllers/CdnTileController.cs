@@ -9,7 +9,7 @@ namespace MCE_API_SERVER.Controllers
     public static class CdnTileController
     {
         [ServerHandle("/cdn/tile/16/{_}/{tilePos1}_{tilePos2}_16.png")]
-        public static byte[] Get(ServerHandleArgs args) // _ used because we dont care :|
+        public static HttpResponse Get(ServerHandleArgs args) // _ used because we dont care :|
         {
             int tilePos1;
             int tilePos2;

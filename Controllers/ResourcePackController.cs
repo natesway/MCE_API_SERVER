@@ -11,7 +11,7 @@ namespace MCE_API_SERVER.Controllers
     public static class ResourcePackController
     {
         [ServerHandle("/api/v1.1/resourcepacks/2020.1217.02/default")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             ResourcePackResponse response = new ResourcePackResponse
             {
@@ -38,7 +38,7 @@ namespace MCE_API_SERVER.Controllers
     public static class ResourcePackCdnController
     {
         [ServerHandle("/cdn/availableresourcepack/resourcepacks/dba38e59-091a-4826-b76a-a08d7de5a9e2-1301b0c257a311678123b9e7325d0d6c61db3c35")]
-        public static byte[] Get(ServerHandleArgs args)
+        public static HttpResponse Get(ServerHandleArgs args)
         {
             string resourcePackFilePath = "resourcepacks/vanilla.zip";
 
