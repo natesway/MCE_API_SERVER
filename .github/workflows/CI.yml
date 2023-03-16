@@ -1,24 +1,33 @@
-on: push
-name: Build and Generate Android Apk
-env:
-  SOLUTION_NAME: ${{secrets.SOLUTION_NAME}}
-  ANDROID_PROJECT_NAME: ${{secrets.ANDROID_PROJECT_NAME}}
+name: Build android app
+
+on:
+  push:
+    branches: [ master ]
+
 jobs:
+  # Build App
   build:
-    name: Build APK
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
+    
+    env:
+      APPLICATION_NAME: MCE_API_SERVER
+      PACKAGE_NAME: com.shatterstar.mceapi
+      
     steps:
-      - uses: actions/checkout@master
-      - name: Building APK
-        uses: ./action
+      - uses: actions/checkout@v2
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v1.0.2
+
+
+      - name: Create and Sign the APK
+        run: msbuild ${{ env.APPLICATION_NAME }}.csproj /p:Configuration=Release /p:OutputPath=bin\Release\
+
+      - name: List folder content
+        run: dir ${{ env.APPLICATION_NAME }}\bin\Release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
         with:
-          args: /r:True /t:SignAndroidPackage /p:AndroidSdkDirectory=/android/sdk  MCE_API_SERVER.csproj
-      - name: Artifacts
-        run: |
-          mkdir -p apks
-          cp bin/Debug/*.apk apks
-      - name: Upload Artifacts
-        uses: actions/upload-artifact@v1
-        with:
-          name: apks
-          path: apks
+          name: MyApplication.apk
+          path: ${{ env.APPLICATION_NAME }}\bin\Release\${{ PACKAGE_NAME }}-Signed.apk
