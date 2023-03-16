@@ -11,7 +11,6 @@ jobs:
     
     env:
       APPLICATION_NAME: MCE_API_SERVER
-      PACKAGE_NAME: com.shatterstar.mceapi
       
     steps:
       - uses: actions/checkout@v2
