@@ -2,7 +2,6 @@
 Minecraft earth api server for Android  
 Ctrl+C, Ctrl+V of ProjectEarthApi 
 
-
 ### Setup
 Download and install Minecraft Earth  
 Download and install patcher: https://ci.rtm516.co.uk/job/ProjectEarth/job/PatcherApp/job/master/lastSuccessfulBuild/artifact/SignApksBuilder-out/AndroidKeys/key0/dev.projectearth.patcher-1.0-unsigned.apk/dev.projectearth.patcher-1.0.apk  
